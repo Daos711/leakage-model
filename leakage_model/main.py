@@ -146,7 +146,8 @@ def main():
                    "R2": metrics_B.R2, "max_abs_error": metrics_B.max_abs_error},
         },
     }
-    with open(os.path.join(OUTPUT_DIR, "fitted_parameters.json"), "w") as f:
+    with open(os.path.join(OUTPUT_DIR, "fitted_parameters.json"), "w",
+              encoding="utf-8") as f:
         json.dump(params, f, indent=2, ensure_ascii=False)
 
     # === Шаг 7. Newton-Raphson — верификация ===
@@ -281,7 +282,8 @@ def main():
     if best_alt:
         params_v2["best_model"] = best_alt.name
 
-    with open(os.path.join(OUTPUT_DIR, "fitted_parameters_v2.json"), "w") as f:
+    with open(os.path.join(OUTPUT_DIR, "fitted_parameters_v2.json"), "w",
+              encoding="utf-8") as f:
         json.dump(params_v2, f, indent=2, ensure_ascii=False)
 
     logger.info("Экспорт v2 завершён.")
