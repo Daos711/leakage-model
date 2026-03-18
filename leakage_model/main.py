@@ -1,4 +1,4 @@
-"""Главный модуль: запуск полного расчёта (шаги 1–7)."""
+"""Главный модуль: запуск полного расчёта (шаги 1–12)."""
 
 import json
 import logging
@@ -20,6 +20,17 @@ from .plots import (
     plot_r_validation,
 )
 from .validation import compute_metrics, validate
+from .diagnostics import compute_dz_exp, plot_dz_diagnostic
+from .alternatives import (
+    fit_r_power_Re,
+    fit_r_asymptotic_Re,
+    fit_r_power_u1,
+    validate_alternative,
+    plot_all_models_calibration,
+    plot_all_models_validation,
+    plot_parity_best,
+)
+from .comparison import build_comparison_table, select_best_model, save_comparison_csv
 
 logging.basicConfig(
     level=logging.INFO,
@@ -157,19 +168,163 @@ def main():
     else:
         logger.warning("✗ Расхождение превышает порог!")
 
+    # === Шаг 8. Диагностический график Δζ_exp ===
+    logger.info("=== Шаг 8: Диагностика Δζ_exp(Re) — вода vs воздух ===")
+    Re_water, dz_water = compute_dz_exp(df_cal, GEOM_WATER)
+    Re_air, dz_air = compute_dz_exp(df_val, GEOM_AIR)
+
+    logger.info("Δζ_exp вода: %s", np.round(dz_water, 6))
+    logger.info("Δζ_exp воздух: %s", np.round(dz_air, 6))
+
+    p6 = plot_dz_diagnostic(Re_water, dz_water, Re_air, dz_air)
+    logger.info("Диагностический график: %s", p6)
+
+    # Интерпретация: сравнение диапазонов
+    dz_w_range = (dz_water.min(), dz_water.max())
+    dz_a_range = (dz_air.min(), dz_air.max())
+    logger.info(
+        "Диапазон Δζ_exp: вода [%.4f, %.4f], воздух [%.4f, %.4f]",
+        dz_w_range[0], dz_w_range[1], dz_a_range[0], dz_a_range[1],
+    )
+    if dz_a_range[0] > dz_w_range[1] or dz_w_range[0] > dz_a_range[1]:
+        logger.info("Ветви воды и воздуха НЕ ПЕРЕСЕКАЮТСЯ — подтверждена непереносимость Δζ(Re).")
+    else:
+        logger.info("Ветви воды и воздуха частично пересекаются.")
+
+    # === Шаг 9. Альтернативные замыкания ===
+    logger.info("=== Шаг 9: Альтернативные замыкания ===")
+    u1_cal = df_cal["u1"].values
+    r_cal = df_cal["r"].values
+    u1_val_arr = df_val["u1"].values
+    r_val_arr = df_val["r"].values
+
+    fit_2A = fit_r_power_Re(u1_cal, r_cal, GEOM_WATER)
+    fit_2B = fit_r_asymptotic_Re(u1_cal, r_cal, GEOM_WATER)
+    fit_2C = fit_r_power_u1(u1_cal, r_cal)
+
+    alt_fits = [fit_2A, fit_2B, fit_2C]
+
+    # Валидация + физические проверки
+    logger.info("=== Шаг 10: Валидация альтернативных моделей ===")
+    for fit in alt_fits:
+        validate_alternative(
+            fit, u1_cal, r_cal, GEOM_WATER,
+            u1_val_arr, r_val_arr, GEOM_AIR,
+        )
+
+    # === Шаг 11. Сводная таблица и выбор лучшей модели ===
+    logger.info("=== Шаг 11: Сводная таблица ===")
+    df_comparison = build_comparison_table(
+        metrics_A, fit_A.R2,
+        metrics_B, fit_B.R2,
+        alt_fits,
+    )
+    comp_path = save_comparison_csv(df_comparison)
+    logger.info("Сводная таблица:\n%s", df_comparison.to_string(index=False))
+    logger.info("Сохранена: %s", comp_path)
+
+    best_alt = select_best_model(alt_fits)
+
+    # === Шаг 12. Графики и экспорт (этап 1.1) ===
+    logger.info("=== Шаг 12: Графики и экспорт (этап 1.1) ===")
+    p7 = plot_all_models_calibration(u1_cal, r_cal, GEOM_WATER, alt_fits)
+    p8 = plot_all_models_validation(
+        u1_cal, r_cal, GEOM_WATER,
+        u1_val_arr, r_val_arr, GEOM_AIR,
+        alt_fits,
+    )
+    logger.info("Графики моделей: %s, %s", p7, p8)
+
+    if best_alt:
+        p9 = plot_parity_best(
+            u1_cal, r_cal, GEOM_WATER,
+            u1_val_arr, r_val_arr, GEOM_AIR,
+            best_alt,
+        )
+        logger.info("Parity plot лучшей модели: %s", p9)
+
+    # Экспорт calibration_results_v2.csv
+    cal_v2 = {"u1": u1_cal, "Re": Re_cal, "r_exp": r_cal}
+    for fit in alt_fits:
+        if fit.converged:
+            cal_v2[f"r_pred_{fit.name}"] = fit.r_func(u1_cal, GEOM_WATER)
+    pd.DataFrame(cal_v2).to_csv(
+        os.path.join(OUTPUT_DIR, "calibration_results_v2.csv"), index=False,
+    )
+
+    # Экспорт validation_results_v2.csv
+    val_v2 = {"u1": u1_val_arr, "Re": Re_val, "r_exp": r_val_arr}
+    for fit in alt_fits:
+        if fit.converged:
+            val_v2[f"r_pred_{fit.name}"] = fit.r_func(u1_val_arr, GEOM_AIR)
+    pd.DataFrame(val_v2).to_csv(
+        os.path.join(OUTPUT_DIR, "validation_results_v2.csv"), index=False,
+    )
+
+    # Экспорт fitted_parameters_v2.json
+    params_v2 = {}
+    for fit in alt_fits:
+        params_v2[fit.name] = {
+            "params": {k: float(v) if not isinstance(v, str) else v
+                       for k, v in fit.params.items()},
+            "R2_cal": fit.R2_cal,
+            "converged": fit.converged,
+            "physical_ok": fit.physical_ok,
+        }
+        if fit.metrics_val:
+            params_v2[fit.name]["validation"] = {
+                "RMSE": fit.metrics_val.RMSE,
+                "MAE": fit.metrics_val.MAE,
+                "R2": fit.metrics_val.R2,
+                "max_abs_error": fit.metrics_val.max_abs_error,
+            }
+    if best_alt:
+        params_v2["best_model"] = best_alt.name
+
+    with open(os.path.join(OUTPUT_DIR, "fitted_parameters_v2.json"), "w") as f:
+        json.dump(params_v2, f, indent=2, ensure_ascii=False)
+
+    logger.info("Экспорт v2 завершён.")
+
     # === Итоговый отчёт ===
     logger.info("=" * 60)
     logger.info("ИТОГОВЫЙ ОТЧЁТ")
     logger.info("=" * 60)
+    logger.info("--- Базовые модели (Δζ-замыкание) ---")
     logger.info("Калибровка R² (A): %.6f, R² (B): %.6f", fit_A.R2, fit_B.R2)
     logger.info("Валидация RMSE (A): %.6f, RMSE (B): %.6f",
                 metrics_A.RMSE, metrics_B.RMSE)
-    logger.info("Лучший вариант: %s", best)
+    logger.info("Лучший базовый вариант: %s", best)
+
+    logger.info("--- Альтернативные модели (прямое замыкание) ---")
+    for fit in alt_fits:
+        if fit.metrics_val:
+            logger.info(
+                "  %s: R²_cal=%.4f, RMSE_val=%.6f, R²_val=%.4f, физ.=%s",
+                fit.name, fit.R2_cal,
+                fit.metrics_val.RMSE, fit.metrics_val.R2,
+                "Да" if fit.physical_ok else "Нет",
+            )
+
+    if best_alt:
+        logger.info("Лучшая альтернативная модель: %s", best_alt.name)
 
     cal_ok = max(fit_A.R2, fit_B.R2) > 0.95
-    val_ok = min(metrics_A.RMSE, metrics_B.RMSE) < 0.05
+    best_val_rmse = min(
+        metrics_A.RMSE, metrics_B.RMSE,
+        *(f.metrics_val.RMSE for f in alt_fits if f.metrics_val),
+    )
+    val_ok = best_val_rmse < 0.05
     logger.info("Критерий калибровки (R² > 0.95): %s", "✓" if cal_ok else "✗")
-    logger.info("Критерий валидации (RMSE < 0.05): %s", "✓" if val_ok else "✗")
+    logger.info(
+        "Критерий валидации (RMSE < 0.05): %s (лучший RMSE: %.6f)",
+        "✓" if val_ok else "✗", best_val_rmse,
+    )
+    if not val_ok:
+        logger.info(
+            "Прямые однопараметрические замыкания также недостаточны "
+            "для переноса между объектами с разной геометрией окна."
+        )
 
 
 if __name__ == "__main__":
