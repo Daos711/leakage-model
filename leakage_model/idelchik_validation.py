@@ -15,8 +15,10 @@ from .validation import Metrics, compute_metrics
 
 logger = logging.getLogger(__name__)
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
-PLOTS_DIR = os.path.join(OUTPUT_DIR, "plots")
+from .config import OUTPUT_STAGE2, OUTPUT_STAGE2_PLOTS
+
+OUTPUT_DIR = OUTPUT_STAGE2
+PLOTS_DIR = OUTPUT_STAGE2_PLOTS
 
 plt.rcParams.update({
     "font.size": 12,

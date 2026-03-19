@@ -1,5 +1,21 @@
 """Геометрические параметры и константы модели."""
 
+import os
+
+# ---------------------------------------------------------------------------
+# Пути вывода — разделение по этапам
+# ---------------------------------------------------------------------------
+_OUTPUT_BASE = os.path.join(os.path.dirname(__file__), "output")
+
+OUTPUT_STAGE1 = os.path.join(_OUTPUT_BASE, "stage1_delta_zeta")
+OUTPUT_STAGE1_PLOTS = os.path.join(OUTPUT_STAGE1, "plots")
+
+OUTPUT_STAGE1_1 = os.path.join(_OUTPUT_BASE, "stage1_1_impulse")
+OUTPUT_STAGE1_1_PLOTS = os.path.join(OUTPUT_STAGE1_1, "plots")
+
+OUTPUT_STAGE2 = os.path.join(_OUTPUT_BASE, "stage2_idelchik")
+OUTPUT_STAGE2_PLOTS = os.path.join(OUTPUT_STAGE2, "plots")
+
 # Водяная модель (калибровка) — натурный эквивалент
 GEOM_WATER = {
     "D": 8.0,        # м, диаметр ствола

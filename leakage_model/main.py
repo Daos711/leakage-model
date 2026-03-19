@@ -38,11 +38,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
+from .config import OUTPUT_STAGE1, OUTPUT_STAGE1_1
+
+OUTPUT_DIR = OUTPUT_STAGE1
+OUTPUT_DIR_V2 = OUTPUT_STAGE1_1
 
 
 def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(OUTPUT_DIR_V2, exist_ok=True)
 
     # === Шаг 1. Загрузка данных ===
     logger.info("=== Шаг 1: Загрузка данных ===")
@@ -250,7 +254,7 @@ def main():
         if fit.converged:
             cal_v2[f"r_pred_{fit.name}"] = fit.r_func(u1_cal, GEOM_WATER)
     pd.DataFrame(cal_v2).to_csv(
-        os.path.join(OUTPUT_DIR, "calibration_results_v2.csv"), index=False,
+        os.path.join(OUTPUT_DIR_V2, "calibration_results_v2.csv"), index=False,
     )
 
     # Экспорт validation_results_v2.csv
@@ -259,7 +263,7 @@ def main():
         if fit.converged:
             val_v2[f"r_pred_{fit.name}"] = fit.r_func(u1_val_arr, GEOM_AIR)
     pd.DataFrame(val_v2).to_csv(
-        os.path.join(OUTPUT_DIR, "validation_results_v2.csv"), index=False,
+        os.path.join(OUTPUT_DIR_V2, "validation_results_v2.csv"), index=False,
     )
 
     # Экспорт fitted_parameters_v2.json
@@ -282,7 +286,7 @@ def main():
     if best_alt:
         params_v2["best_model"] = best_alt.name
 
-    with open(os.path.join(OUTPUT_DIR, "fitted_parameters_v2.json"), "w",
+    with open(os.path.join(OUTPUT_DIR_V2, "fitted_parameters_v2.json"), "w",
               encoding="utf-8") as f:
         json.dump(params_v2, f, indent=2, ensure_ascii=False)
 

@@ -13,7 +13,9 @@ from .model import calc_delta_zeta, calc_Re
 
 logger = logging.getLogger(__name__)
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output", "plots")
+from .config import OUTPUT_STAGE1_PLOTS
+
+OUTPUT_DIR = OUTPUT_STAGE1_PLOTS
 
 
 def compute_dz_exp(df: pd.DataFrame, geom: dict) -> tuple[np.ndarray, np.ndarray]:
