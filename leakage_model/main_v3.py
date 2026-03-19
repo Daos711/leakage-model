@@ -1,5 +1,6 @@
 """Главный модуль импульсной модели (этап 3): шаги 1–8."""
 
+import argparse
 import json
 import logging
 import os
@@ -278,5 +279,16 @@ def main():
     logger.info("Экспорт завершён. Файлы в: %s", OUTPUT_DIR)
 
 
+def _parse_args():
+    parser = argparse.ArgumentParser(description="Leakage model — impulse (v3)")
+    parser.add_argument("--no-titles", action="store_true",
+                        help="Генерировать графики без заголовков")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
+    args = _parse_args()
+    if args.no_titles:
+        from leakage_model import config as _cfg
+        _cfg.NO_TITLES = True
     main()

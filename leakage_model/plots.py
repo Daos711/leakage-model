@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from . import config as _cfg
+
 plt.rcParams.update({
     "font.size": 12,
     "axes.grid": True,
@@ -42,7 +44,8 @@ def plot_r_calibration(df_cal, geom_w, dz_func_A, dz_func_B):
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    ax.set_title("Калибровка: r(u₁) — водяная модель")
+    if not _cfg.NO_TITLES:
+        ax.set_title("Калибровка: r(u₁) — водяная модель")
     ax.legend()
     return _save(fig, "01_r_calibration.png")
 
@@ -73,7 +76,8 @@ def plot_r_validation(df_cal, df_val, geom_w, geom_a, dz_func_A, dz_func_B):
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    ax.set_title("Валидация: r(u₁) — оба набора данных\n(разные объекты: A_ок=12 и 20 м²)")
+    if not _cfg.NO_TITLES:
+        ax.set_title("Валидация: r(u₁) — оба набора данных\n(разные объекты: A_ок=12 и 20 м²)")
     ax.legend(fontsize=10)
     return _save(fig, "02_r_validation.png")
 
@@ -90,7 +94,8 @@ def plot_dz_Re(Re, dz_exp, dz_func_A, dz_func_B):
 
     ax.set_xlabel("Число Рейнольдса Re")
     ax.set_ylabel("Δζ")
-    ax.set_title("Калибровка: Δζ(Re)")
+    if not _cfg.NO_TITLES:
+        ax.set_title("Калибровка: Δζ(Re)")
     ax.legend()
     return _save(fig, "03_dz_Re.png")
 
@@ -118,7 +123,8 @@ def plot_k_ut(df_cal, df_val, geom_w, geom_a, dz_func_A):
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Коэффициент утечек k_ут")
-    ax.set_title("k_ут(u₁)")
+    if not _cfg.NO_TITLES:
+        ax.set_title("k_ут(u₁)")
     ax.legend(fontsize=10)
     return _save(fig, "04_k_ut.png")
 
@@ -140,7 +146,8 @@ def plot_parity(df_cal, df_val, geom_w, geom_a, dz_func_A):
 
     ax.set_xlabel("r эксперимент")
     ax.set_ylabel("r расчёт")
-    ax.set_title("Parity plot")
+    if not _cfg.NO_TITLES:
+        ax.set_title("Parity plot")
     ax.set_aspect("equal")
     ax.legend()
     ax.set_xlim(lims)

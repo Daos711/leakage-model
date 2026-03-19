@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from . import config as _cfg
 from .config import RHO
 from .model import calc_k_ut, calc_Re
 from .solver import solve_r_brent
@@ -54,7 +55,8 @@ def plot_C_M_Re(df_cm: pd.DataFrame, cm_mean: float):
                label=f"C_M среднее = {cm_mean:.4f}")
     ax.set_xlabel("Число Рейнольдса Re")
     ax.set_ylabel("C_M")
-    ax.set_title("C_M(Re) — калибровочные точки")
+    if not _cfg.NO_TITLES:
+        ax.set_title("C_M(Re) — калибровочные точки")
     ax.legend()
     return _save(fig, "v3_01_C_M_Re.png")
 
@@ -68,7 +70,8 @@ def plot_C_M_diagnostics(df_cm: pd.DataFrame, cm_mean: float):
                 label=f"Среднее = {cm_mean:.4f}")
     ax1.set_xlabel("r (эксперимент)")
     ax1.set_ylabel("C_M")
-    ax1.set_title("C_M(r)")
+    if not _cfg.NO_TITLES:
+        ax1.set_title("C_M(r)")
     ax1.legend()
 
     ax2.plot(df_cm["u1"], df_cm["C_M"], "ko", ms=8)
@@ -76,10 +79,12 @@ def plot_C_M_diagnostics(df_cm: pd.DataFrame, cm_mean: float):
                 label=f"Среднее = {cm_mean:.4f}")
     ax2.set_xlabel("Скорость u₁, м/с")
     ax2.set_ylabel("C_M")
-    ax2.set_title("C_M(u₁)")
+    if not _cfg.NO_TITLES:
+        ax2.set_title("C_M(u₁)")
     ax2.legend()
 
-    fig.suptitle("Диагностика зависимости C_M", fontsize=14)
+    if not _cfg.NO_TITLES:
+        fig.suptitle("Диагностика зависимости C_M", fontsize=14)
     fig.tight_layout()
     return _save(fig, "v3_01a_C_M_diagnostics.png")
 
@@ -101,7 +106,8 @@ def plot_r_calibration_v3(df_cal_res: pd.DataFrame, geom: dict, C_M: float):
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    ax.set_title("Калибровка: r(u₁) — импульсная модель")
+    if not _cfg.NO_TITLES:
+        ax.set_title("Калибровка: r(u₁) — импульсная модель")
     ax.legend()
     return _save(fig, "v3_02_r_calibration.png")
 
@@ -128,8 +134,9 @@ def plot_r_validation_v3(df_cal_res: pd.DataFrame, df_val_res: pd.DataFrame,
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    ax.set_title("Валидация: r(u₁) — импульсная модель\n"
-                 "(единый C_M для обеих геометрий)")
+    if not _cfg.NO_TITLES:
+        ax.set_title("Валидация: r(u₁) — импульсная модель\n"
+                     "(единый C_M для обеих геометрий)")
     ax.legend(fontsize=10)
     return _save(fig, "v3_03_r_validation.png")
 
@@ -158,7 +165,8 @@ def plot_k_ut_v3(df_cal_res: pd.DataFrame, df_val_res: pd.DataFrame,
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Коэффициент утечек k_ут")
-    ax.set_title("k_ут(u₁) — импульсная модель")
+    if not _cfg.NO_TITLES:
+        ax.set_title("k_ут(u₁) — импульсная модель")
     ax.legend(fontsize=10)
     return _save(fig, "v3_04_k_ut.png")
 
@@ -181,7 +189,8 @@ def plot_parity_v3(df_cal_res: pd.DataFrame, df_val_res: pd.DataFrame):
 
     ax.set_xlabel("r эксперимент")
     ax.set_ylabel("r расчёт")
-    ax.set_title("Parity plot — импульсная модель")
+    if not _cfg.NO_TITLES:
+        ax.set_title("Parity plot — импульсная модель")
     ax.set_aspect("equal")
     ax.legend()
     ax.set_xlim(lims)
@@ -210,7 +219,8 @@ def plot_comparison_v3(df_cal_res: pd.DataFrame, df_val_res: pd.DataFrame,
         ax1.plot(u_fine, r_old, "g--", lw=2, label="Δζ-модель (v1)")
     ax1.set_xlabel("u₁, м/с")
     ax1.set_ylabel("r")
-    ax1.set_title("Калибровка (вода)")
+    if not _cfg.NO_TITLES:
+        ax1.set_title("Калибровка (вода)")
     ax1.legend()
 
     # Правый: валидация (воздух)
@@ -226,9 +236,11 @@ def plot_comparison_v3(df_cal_res: pd.DataFrame, df_val_res: pd.DataFrame,
         ax2.plot(u_fine_v, r_old_v, "g--", lw=2, label="Δζ-модель (v1)")
     ax2.set_xlabel("u₁, м/с")
     ax2.set_ylabel("r")
-    ax2.set_title("Валидация (воздух)")
+    if not _cfg.NO_TITLES:
+        ax2.set_title("Валидация (воздух)")
     ax2.legend()
 
-    fig.suptitle("Сравнение: импульсная модель vs Δζ-модель", fontsize=14)
+    if not _cfg.NO_TITLES:
+        fig.suptitle("Сравнение: импульсная модель vs Δζ-модель", fontsize=14)
     fig.tight_layout()
     return _save(fig, "v3_06_comparison.png")
