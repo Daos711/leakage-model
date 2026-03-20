@@ -42,3 +42,14 @@ GEOM_AIR = {
 NR_TOL = 1e-12
 NR_MAX_ITER = 100
 NR_MIN_DERIV = 1e-12
+
+# ---------------------------------------------------------------------------
+# Этап 3 — полуэмпирическая физическая модель
+# ---------------------------------------------------------------------------
+import numpy as np
+
+BETA_DEG = 45.0
+BETA_RAD = np.radians(BETA_DEG)
+
+OUTPUT_STAGE3 = os.path.join(_OUTPUT_BASE, "stage3_physics")
+OUTPUT_STAGE3_PLOTS = os.path.join(OUTPUT_STAGE3, "plots")
