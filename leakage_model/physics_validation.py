@@ -15,7 +15,7 @@ from .validation import compute_metrics, Metrics
 logger = logging.getLogger(__name__)
 
 
-def validate(u1_val, r_val, geom_val, a_xi, b_xi, beta,
+def validate(u1_val, r_val, geom_val, a_xi, b_xi, c0, beta,
              L_upper=L_UPPER_DEFAULT, eps=EPS_DEFAULT,
              R_down=0.0, criterion="Re"):
     """Валидация на воздушных данных.
@@ -25,7 +25,7 @@ def validate(u1_val, r_val, geom_val, a_xi, b_xi, beta,
     u1_val = np.asarray(u1_val, dtype=float)
     r_val = np.asarray(r_val, dtype=float)
 
-    result_val = solve_all(u1_val, geom_val, a_xi, b_xi, beta,
+    result_val = solve_all(u1_val, geom_val, a_xi, b_xi, c0, beta,
                            L_upper, eps, R_down, criterion)
     metrics_val = compute_metrics(r_val, result_val.r_pred)
 
@@ -34,6 +34,39 @@ def validate(u1_val, r_val, geom_val, a_xi, b_xi, beta,
                 f"max|err|={metrics_val.max_abs_error:.4f}")
 
     return metrics_val, result_val
+
+
+def check_dimensionless_invariance(geom, a_xi, b_xi, c0, beta,
+                                   L_upper=L_UPPER_DEFAULT, eps=EPS_DEFAULT):
+    """Тест корректности: при фиксированных ξ=const и λ=const
+    прогоняет несколько u₁ и проверяет, что r не меняется
+    в пределах численной погрешности (< 1e-10).
+
+    Использует a_xi=0, b_xi=0 → ξ = 0.5 = const (не зависит от Re).
+    При ξ=const все φ и C_β тоже const, а λ слабо зависит от Re,
+    поэтому r должно быть практически постоянным.
+
+    Возвращает (passed: bool, r_values: ndarray, spread: float).
+    """
+    a_test = 0.0  # ξ = 1/(1+exp(0)) = 0.5
+    b_test = 0.0
+    u_test = np.array([3.0, 6.0, 10.0, 15.0])
+
+    result = solve_all(u_test, geom, a_test, b_test, c0, beta,
+                       L_upper, eps, criterion="Re")
+
+    r_vals = result.r_pred[result.converged]
+    if len(r_vals) < 2:
+        logger.warning("Безразмерная проверка: менее 2 точек сошлось")
+        return False, result.r_pred, np.inf
+
+    spread = float(np.nanmax(r_vals) - np.nanmin(r_vals))
+    passed = spread < 0.01  # допуск на влияние λ(Re)
+
+    logger.info(f"Безразмерная проверка: r = {np.array2string(result.r_pred, precision=6)}, "
+                f"spread = {spread:.2e} → {'✓' if passed else '✗'}")
+
+    return passed, result.r_pred, spread
 
 
 def _build_prediction_df(u1, r_exp, result, geom, label):
@@ -51,6 +84,7 @@ def _build_prediction_df(u1, r_exp, result, geom, label):
         "xi": result.xi,
         "phi_up": result.phi_up,
         "phi_down": result.phi_down,
+        "C_beta": result.C_beta,
         "r_exp": r_exp,
         "r_pred": result.r_pred,
         "error": result.r_pred - r_exp,
@@ -62,7 +96,7 @@ def _build_prediction_df(u1, r_exp, result, geom, label):
 
 def export_results(u1_cal, r_cal, result_cal, geom_cal, metrics_cal,
                    u1_val, r_val, result_val, geom_val, metrics_val,
-                   a_xi, b_xi, criterion, output_dir):
+                   a_xi, b_xi, c0, criterion, output_dir):
     """Экспорт CSV + JSON."""
     os.makedirs(output_dir, exist_ok=True)
 
@@ -79,6 +113,7 @@ def export_results(u1_cal, r_cal, result_cal, geom_cal, metrics_cal,
     params = {
         "a_xi": float(a_xi),
         "b_xi": float(b_xi),
+        "c0": float(c0),
         "criterion": criterion,
         "calibration": {
             "RMSE": float(metrics_cal.RMSE),

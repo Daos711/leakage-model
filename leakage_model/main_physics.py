@@ -18,7 +18,9 @@ from .model import calc_Re
 from .physics_closures import calc_xi, calc_phi
 from .physics_model import solve_all, borda_carnot_loss_coeff
 from .physics_calibration import calibrate
-from .physics_validation import validate, export_results
+from .physics_validation import (
+    validate, export_results, check_dimensionless_invariance,
+)
 from .physics_plots import (
     plot_r_vs_u1,
     plot_parity,
@@ -70,14 +72,14 @@ def main():
     logger.info(f"  Критерий ξ: {CRITERION}")
 
     # ------------------------------------------------------------------
-    # Шаг 2. Калибровка a_ξ, b_ξ по водяным данным
+    # Шаг 2. Калибровка a_ξ, b_ξ, c₀ по водяным данным
     # ------------------------------------------------------------------
-    logger.info("=== Шаг 2: Калибровка a_ξ, b_ξ ===")
-    a_xi, b_xi, metrics_cal, result_cal = calibrate(
+    logger.info("=== Шаг 2: Калибровка a_ξ, b_ξ, c₀ ===")
+    a_xi, b_xi, c0, metrics_cal, result_cal = calibrate(
         u1_water, r_water, GEOM_WATER, BETA_RAD,
         L_UPPER, EPS, R_DOWN, CRITERION,
     )
-    logger.info(f"  Результат: a_ξ = {a_xi:.6f}, b_ξ = {b_xi:.6f}")
+    logger.info(f"  Результат: a_ξ = {a_xi:.6f}, b_ξ = {b_xi:.6f}, c₀ = {c0:.6f}")
 
     # ------------------------------------------------------------------
     # Шаг 3. Предсказание r для обоих наборов
@@ -89,23 +91,25 @@ def main():
     logger.info(f"    ξ     = {np.array2string(result_cal.xi, precision=4)}")
     logger.info(f"    φ_up  = {np.array2string(result_cal.phi_up, precision=4)}")
     logger.info(f"    φ_down= {np.array2string(result_cal.phi_down, precision=4)}")
+    logger.info(f"    C_β   = {np.array2string(result_cal.C_beta, precision=4)}")
 
     # Валидационный набор
     result_val = solve_all(
-        u1_air, GEOM_AIR, a_xi, b_xi, BETA_RAD,
+        u1_air, GEOM_AIR, a_xi, b_xi, c0, BETA_RAD,
         L_UPPER, EPS, R_DOWN, CRITERION,
     )
     logger.info(f"  Воздух: r_pred = {np.array2string(result_val.r_pred, precision=4)}")
     logger.info(f"    ξ     = {np.array2string(result_val.xi, precision=4)}")
     logger.info(f"    φ_up  = {np.array2string(result_val.phi_up, precision=4)}")
     logger.info(f"    φ_down= {np.array2string(result_val.phi_down, precision=4)}")
+    logger.info(f"    C_β   = {np.array2string(result_val.C_beta, precision=4)}")
 
     # ------------------------------------------------------------------
     # Шаг 4. Валидация на воздушных данных
     # ------------------------------------------------------------------
     logger.info("=== Шаг 4: Валидация ===")
     metrics_val, result_val = validate(
-        u1_air, r_air, GEOM_AIR, a_xi, b_xi, BETA_RAD,
+        u1_air, r_air, GEOM_AIR, a_xi, b_xi, c0, BETA_RAD,
         L_UPPER, EPS, R_DOWN, CRITERION,
     )
 
@@ -144,28 +148,23 @@ def main():
         logger.info(f"  {name}: сходимость {n_conv}/{n_tot} "
                     f"→ {'✓' if n_conv == n_tot else '✗'}")
 
-    # Безразмерная проверка: ξ=const → r=const
-    logger.info("  Безразмерная проверка (ξ=const → r=const):")
-    # Используем очень большой b_xi ~ 0, чтобы ξ не зависел от Re
-    a_test = 0.0  # ξ = 1/(1+exp(0)) = 0.5
-    b_test = 0.0
-    u_test = np.array([3.0, 6.0, 10.0, 15.0])
-    res_test = solve_all(u_test, GEOM_WATER, a_test, b_test, BETA_RAD,
-                         L_UPPER, EPS, criterion=CRITERION)
-    r_spread = np.nanmax(res_test.r_pred) - np.nanmin(res_test.r_pred)
-    logger.info(f"    r = {np.array2string(res_test.r_pred, precision=6)}, "
-                f"spread = {r_spread:.2e} → {'✓' if r_spread < 0.01 else '✗'}")
+    # ------------------------------------------------------------------
+    # Шаг 6. Диагностика: безразмерная инвариантность
+    # ------------------------------------------------------------------
+    logger.info("=== Шаг 6: Диагностика (ξ=const → r=const) ===")
+    check_dimensionless_invariance(GEOM_WATER, a_xi, b_xi, c0, BETA_RAD,
+                                   L_UPPER, EPS)
 
     # ------------------------------------------------------------------
-    # Шаг 6. Графики
+    # Шаг 7. Графики
     # ------------------------------------------------------------------
-    logger.info("=== Шаг 6: Графики ===")
+    logger.info("=== Шаг 7: Графики ===")
     os.makedirs(OUTPUT_STAGE3_PLOTS, exist_ok=True)
 
     path1 = plot_r_vs_u1(
         u1_water, r_water, result_cal,
         u1_air, r_air, result_val,
-        GEOM_WATER, GEOM_AIR, a_xi, b_xi, BETA_RAD,
+        GEOM_WATER, GEOM_AIR, a_xi, b_xi, c0, BETA_RAD,
         L_UPPER, EPS, CRITERION,
     )
     logger.info(f"  График 1 (r vs u₁): {path1}")
@@ -175,42 +174,42 @@ def main():
 
     path3 = plot_xi_and_phi(
         u1_water, result_cal, u1_air, result_val,
-        GEOM_WATER, GEOM_AIR, a_xi, b_xi, BETA_RAD, CRITERION,
+        GEOM_WATER, GEOM_AIR, a_xi, b_xi, c0, BETA_RAD, CRITERION,
     )
-    logger.info(f"  График 3 (ξ и φ): {path3}")
+    logger.info(f"  График 3 (ξ, φ, C_β): {path3}")
 
     path4 = plot_sensitivity(
-        u1_water, r_water, GEOM_WATER, a_xi, b_xi, BETA_RAD,
+        u1_water, r_water, GEOM_WATER, a_xi, b_xi, c0, BETA_RAD,
         L_UPPER, EPS, CRITERION,
     )
     logger.info(f"  График 4 (чувствительность): {path4}")
 
     u1_for_F = [u1_water[0], u1_water[len(u1_water)//2], u1_water[-1]]
     path5 = plot_F_residual(
-        GEOM_WATER, a_xi, b_xi, BETA_RAD, u1_for_F,
+        GEOM_WATER, a_xi, b_xi, c0, BETA_RAD, u1_for_F,
         L_UPPER, EPS, CRITERION,
     )
     logger.info(f"  График 5 (F̃(r)): {path5}")
 
     # ------------------------------------------------------------------
-    # Шаг 7. Экспорт
+    # Шаг 8. Экспорт
     # ------------------------------------------------------------------
-    logger.info("=== Шаг 7: Экспорт результатов ===")
+    logger.info("=== Шаг 8: Экспорт результатов ===")
     os.makedirs(OUTPUT_STAGE3, exist_ok=True)
 
     export_results(
         u1_water, r_water, result_cal, GEOM_WATER, metrics_cal,
         u1_air, r_air, result_val, GEOM_AIR, metrics_val,
-        a_xi, b_xi, CRITERION, OUTPUT_STAGE3,
+        a_xi, b_xi, c0, CRITERION, OUTPUT_STAGE3,
     )
 
     # ------------------------------------------------------------------
-    # Шаг 8. Итоговый отчёт
+    # Шаг 9. Итоговый отчёт
     # ------------------------------------------------------------------
     logger.info("=" * 60)
     logger.info("ИТОГОВЫЙ ОТЧЁТ — ЭТАП 3")
     logger.info("=" * 60)
-    logger.info(f"Параметры модели: a_ξ = {a_xi:.6f}, b_ξ = {b_xi:.6f}")
+    logger.info(f"Параметры модели: a_ξ = {a_xi:.6f}, b_ξ = {b_xi:.6f}, c₀ = {c0:.6f}")
     logger.info(f"Критерий: {CRITERION}")
     logger.info(f"  Калибровка (вода):   RMSE = {metrics_cal.RMSE:.4f}")
     logger.info(f"  Валидация (воздух):  RMSE = {metrics_val.RMSE:.4f}")
@@ -240,10 +239,11 @@ def main():
     logger.info("-" * 60)
     logger.info("ВЫВОД:")
     logger.info("Полуэмпирическая модель с параметром блокировки ξ(Re)")
+    logger.info("и асимметричным членом C_β = c₀·cos²β·(1−ξ)")
     logger.info("воспроизводит убывание r(u₁) через физический механизм:")
     logger.info("рост инерции струи → подавление вихрей → уменьшение блокировки")
     logger.info("→ снижение потерь Борда-Карно → меньше утечек вверх.")
-    logger.info("Два калибруемых параметра (a_ξ, b_ξ) обеспечивают перенос")
+    logger.info("Три калибруемых параметра (a_ξ, b_ξ, c₀) обеспечивают перенос")
     logger.info("на другую геометрию (σ) через явную зависимость φ(σ, ξ).")
     logger.info("=" * 60)
 

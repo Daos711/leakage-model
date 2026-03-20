@@ -73,6 +73,26 @@ def calc_phi(xi, sigma, beta, direction):
     return sigma + (1.0 - sigma) * (1.0 - xi) * k
 
 
+def calc_C_beta(xi, beta, c0):
+    """Асимметричный член ядра: C_β = c₀·cos²β·(1−ξ).
+
+    Параметры
+    ---------
+    xi : float или ndarray
+        Параметр блокировки ξ ∈ (0, 1).
+    beta : float
+        Угол подвода потока, рад.
+    c0 : float
+        Калибруемый коэффициент асимметрии.
+
+    Возвращает
+    ----------
+    float или ndarray
+        Значение C_β.
+    """
+    return c0 * np.cos(beta) ** 2 * (1.0 - xi)
+
+
 def calc_u_contracted(u_branch, phi):
     """Скорость в сжатом сечении: u_c = u_branch / φ."""
     return u_branch / phi

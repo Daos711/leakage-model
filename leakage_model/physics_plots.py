@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from .config import OUTPUT_STAGE3_PLOTS
-from .physics_closures import calc_xi, calc_phi
+from .physics_closures import calc_xi, calc_phi, calc_C_beta
 from .physics_model import solve_all, residual_F
 from .idelchik import L_UPPER_DEFAULT, EPS_DEFAULT
 
@@ -30,7 +30,7 @@ def _save(fig, name):
 
 
 def plot_r_vs_u1(u1_cal, r_cal, result_cal, u1_val, r_val, result_val,
-                 geom_cal, geom_val, a_xi, b_xi, beta,
+                 geom_cal, geom_val, a_xi, b_xi, c0, beta,
                  L_upper=L_UPPER_DEFAULT, eps=EPS_DEFAULT, criterion="Re"):
     """График 1: r(u₁) — эксперимент и модель для обоих наборов."""
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -41,12 +41,12 @@ def plot_r_vs_u1(u1_cal, r_cal, result_cal, u1_val, r_val, result_val,
 
     # Модельные кривые (гладкие)
     u_fine_w = np.linspace(min(u1_cal) * 0.8, max(u1_cal) * 1.1, 200)
-    res_w = solve_all(u_fine_w, geom_cal, a_xi, b_xi, beta,
+    res_w = solve_all(u_fine_w, geom_cal, a_xi, b_xi, c0, beta,
                       L_upper, eps, criterion=criterion)
     ax.plot(u_fine_w, res_w.r_pred, "b-", lw=2, label="Модель (вода)")
 
     u_fine_a = np.linspace(min(u1_val) * 0.8, max(u1_val) * 1.1, 200)
-    res_a = solve_all(u_fine_a, geom_val, a_xi, b_xi, beta,
+    res_a = solve_all(u_fine_a, geom_val, a_xi, b_xi, c0, beta,
                       L_upper, eps, criterion=criterion)
     ax.plot(u_fine_a, res_a.r_pred, "r--", lw=2, label="Модель (воздух)")
 
@@ -87,12 +87,13 @@ def plot_parity(r_cal, result_cal, r_val, result_val):
 
 
 def plot_xi_and_phi(u1_cal, result_cal, u1_val, result_val,
-                    geom_cal, geom_val, a_xi, b_xi, beta, criterion="Re"):
-    """График 3: ξ(u₁) и φ₂(u₁), φ₃(u₁)."""
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+                    geom_cal, geom_val, a_xi, b_xi, c0, beta, criterion="Re"):
+    """График 3: ξ(u₁), φ₂(u₁), φ₃(u₁), C_β(u₁)."""
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+    u_range = np.linspace(1.0, 20.0, 300)
 
     # Левый: ξ(u₁) для обоих
-    u_range = np.linspace(1.0, 20.0, 300)
     for geom, label, ls in [(geom_cal, "вода", "-"), (geom_val, "воздух", "--")]:
         nu = geom["nu"]
         D_h = geom["D_h"]
@@ -113,7 +114,7 @@ def plot_xi_and_phi(u1_cal, result_cal, u1_val, result_val,
     axes[0].legend()
     axes[0].set_ylim(-0.05, 1.05)
 
-    # Правый: φ_up и φ_down
+    # Средний: φ_up и φ_down
     for geom, label, ls in [(geom_cal, "вода", "-"), (geom_val, "воздух", "--")]:
         sigma = geom["A_ok"] / geom["A_s"]
         nu = geom["nu"]
@@ -135,21 +136,42 @@ def plot_xi_and_phi(u1_cal, result_cal, u1_val, result_val,
     axes[1].set_title("Коэффициенты сжатия φ(u₁)")
     axes[1].legend(fontsize=9)
 
+    # Правый: C_β(u₁)
+    for geom, label, ls in [(geom_cal, "вода", "-"), (geom_val, "воздух", "--")]:
+        nu = geom["nu"]
+        D_h = geom["D_h"]
+        if criterion == "Re":
+            crit = u_range * D_h / nu
+        elif criterion == "Fr":
+            crit = u_range / np.sqrt(9.81 * D_h)
+        else:
+            crit = u_range
+        xi = calc_xi(crit, a_xi, b_xi)
+        cb = calc_C_beta(xi, beta, c0)
+        axes[2].plot(u_range, cb, ls, lw=2, label=f"C_β ({label})")
+
+    axes[2].plot(u1_cal, result_cal.C_beta, "bo", ms=6)
+    axes[2].plot(u1_val, result_val.C_beta, "rs", ms=6)
+    axes[2].set_xlabel("u₁, м/с")
+    axes[2].set_ylabel("C_β")
+    axes[2].set_title("Асимметричный член C_β(u₁)")
+    axes[2].legend()
+
     fig.tight_layout()
     return _save(fig, "22_physics_xi_phi.png")
 
 
-def plot_sensitivity(u1_cal, r_cal, geom_cal, a_xi, b_xi, beta,
+def plot_sensitivity(u1_cal, r_cal, geom_cal, a_xi, b_xi, c0, beta,
                      L_upper=L_UPPER_DEFAULT, eps=EPS_DEFAULT, criterion="Re"):
-    """График 4: чувствительность r к a_ξ и b_ξ."""
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    """График 4: чувствительность r к a_ξ, b_ξ и c₀."""
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
     u_fine = np.linspace(min(u1_cal) * 0.8, max(u1_cal) * 1.1, 150)
 
     # Левый: варьируем a_ξ
     for da in [-2.0, -1.0, 0.0, 1.0, 2.0]:
         a_var = a_xi + da
-        res = solve_all(u_fine, geom_cal, a_var, b_xi, beta,
+        res = solve_all(u_fine, geom_cal, a_var, b_xi, c0, beta,
                         L_upper, eps, criterion=criterion)
         lbl = f"a_ξ = {a_var:.1f}"
         lw = 2.5 if da == 0 else 1.0
@@ -157,14 +179,14 @@ def plot_sensitivity(u1_cal, r_cal, geom_cal, a_xi, b_xi, beta,
     axes[0].plot(u1_cal, r_cal, "ko", ms=7, label="Эксп.", zorder=10)
     axes[0].set_xlabel("u₁, м/с")
     axes[0].set_ylabel("r")
-    axes[0].set_title(f"Чувствительность к a_ξ (b_ξ={b_xi:.3f})")
+    axes[0].set_title(f"Чувствительность к a_ξ (b_ξ={b_xi:.3f}, c₀={c0:.3f})")
     axes[0].legend(fontsize=9)
     axes[0].set_ylim(bottom=0)
 
-    # Правый: варьируем b_ξ
+    # Средний: варьируем b_ξ
     for db in [-0.3, -0.15, 0.0, 0.15, 0.3]:
         b_var = b_xi + db
-        res = solve_all(u_fine, geom_cal, a_xi, b_var, beta,
+        res = solve_all(u_fine, geom_cal, a_xi, b_var, c0, beta,
                         L_upper, eps, criterion=criterion)
         lbl = f"b_ξ = {b_var:.3f}"
         lw = 2.5 if db == 0 else 1.0
@@ -172,15 +194,30 @@ def plot_sensitivity(u1_cal, r_cal, geom_cal, a_xi, b_xi, beta,
     axes[1].plot(u1_cal, r_cal, "ko", ms=7, label="Эксп.", zorder=10)
     axes[1].set_xlabel("u₁, м/с")
     axes[1].set_ylabel("r")
-    axes[1].set_title(f"Чувствительность к b_ξ (a_ξ={a_xi:.3f})")
+    axes[1].set_title(f"Чувствительность к b_ξ (a_ξ={a_xi:.3f}, c₀={c0:.3f})")
     axes[1].legend(fontsize=9)
     axes[1].set_ylim(bottom=0)
+
+    # Правый: варьируем c₀
+    for dc in [-0.5, -0.25, 0.0, 0.25, 0.5]:
+        c_var = c0 + dc
+        res = solve_all(u_fine, geom_cal, a_xi, b_xi, c_var, beta,
+                        L_upper, eps, criterion=criterion)
+        lbl = f"c₀ = {c_var:.3f}"
+        lw = 2.5 if dc == 0 else 1.0
+        axes[2].plot(u_fine, res.r_pred, lw=lw, label=lbl)
+    axes[2].plot(u1_cal, r_cal, "ko", ms=7, label="Эксп.", zorder=10)
+    axes[2].set_xlabel("u₁, м/с")
+    axes[2].set_ylabel("r")
+    axes[2].set_title(f"Чувствительность к c₀ (a_ξ={a_xi:.3f}, b_ξ={b_xi:.3f})")
+    axes[2].legend(fontsize=9)
+    axes[2].set_ylim(bottom=0)
 
     fig.tight_layout()
     return _save(fig, "23_physics_sensitivity.png")
 
 
-def plot_F_residual(geom, a_xi, b_xi, beta, u1_values,
+def plot_F_residual(geom, a_xi, b_xi, c0, beta, u1_values,
                     L_upper=L_UPPER_DEFAULT, eps=EPS_DEFAULT, criterion="Re"):
     """График 5: F(r) для нескольких u₁ — проверка единственности корня."""
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -188,7 +225,7 @@ def plot_F_residual(geom, a_xi, b_xi, beta, u1_values,
 
     for u1 in u1_values:
         F_vals = np.array([
-            residual_F(r, u1, geom, a_xi, b_xi, beta,
+            residual_F(r, u1, geom, a_xi, b_xi, c0, beta,
                        L_upper, eps, criterion=criterion)
             for r in r_range
         ])
