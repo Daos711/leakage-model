@@ -196,7 +196,7 @@ def solve_all(u1_array, geom, a_xi, b_xi, c0, beta,
             notes.append(note)
 
     n_conv = int(converged.sum())
-    logger.info(f"Сошлось {n_conv}/{n} точек (criterion={criterion})")
+    logger.debug(f"Сошлось {n_conv}/{n} точек (criterion={criterion})")
 
     return PhysicsResult(
         r_pred=r_pred,
