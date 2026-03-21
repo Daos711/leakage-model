@@ -10,15 +10,15 @@ import os
 
 import numpy as np
 
-from .config import GEOM_AIR, GEOM_WATER
-from .data import load_calibration_data, load_validation_data
-from .idelchik import VARIANTS, L_UPPER_DEFAULT, EPS_DEFAULT
-from .idelchik_model import (
+from ..core.config import GEOM_AIR, GEOM_WATER
+from ..core.data import load_calibration_data, load_validation_data
+from .coefficients import VARIANTS, L_UPPER_DEFAULT, EPS_DEFAULT
+from .model import (
     run_variant,
     sensitivity_L_upper,
     sensitivity_coefficients,
 )
-from .idelchik_validation import (
+from .validation import (
     compute_variant_metrics,
     plot_r_prediction,
     plot_zeta_curves,
@@ -264,12 +264,12 @@ def _load_previous_models():
     """Попытка загрузить предыдущие модели для сравнения."""
     funcs = []
     try:
-        from .calibration import fit_power_law
-        from .model import calc_Re, calc_delta_zeta, calc_r_explicit
-        from .data import load_calibration_data
+        from ..stage1_energy.calibration import fit_power_law
+        from ..stage1_energy.model import calc_Re, calc_delta_zeta, calc_r_explicit
+        from ..core.data import load_calibration_data
 
         df_cal = load_calibration_data()
-        from .config import GEOM_WATER
+        from ..core.config import GEOM_WATER
         r_cal = df_cal["r"].values
         u1_cal = df_cal["u1"].values
         dz_exp = calc_delta_zeta(r_cal, GEOM_WATER["A_ok"], GEOM_WATER["A_s"])
@@ -286,8 +286,8 @@ def _load_previous_models():
         logger.debug("Не удалось загрузить Δζ-модель: %s", e)
 
     try:
-        from .alternatives import fit_r_power_u1
-        from .data import load_calibration_data
+        from ..stage1_energy.alternatives import fit_r_power_u1
+        from ..core.data import load_calibration_data
 
         df_cal = load_calibration_data()
         fit_2C = fit_r_power_u1(df_cal["u1"].values, df_cal["r"].values)

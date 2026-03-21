@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from .model import calc_r_explicit
+from ..stage1_energy.model import calc_r_explicit
 
 logger = logging.getLogger(__name__)
 

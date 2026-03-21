@@ -10,7 +10,7 @@ import logging
 import numpy as np
 from scipy.optimize import minimize
 
-from .plates_model import predict_plates
+from .model import predict_plates
 
 logger = logging.getLogger(__name__)
 

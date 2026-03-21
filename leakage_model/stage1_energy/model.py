@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from .config import NR_MAX_ITER, NR_MIN_DERIV, NR_TOL
+from ..core.config import NR_MAX_ITER, NR_MIN_DERIV, NR_TOL
 
 
 def calc_delta_zeta(r: np.ndarray, A_ok: float, A_s: float) -> np.ndarray:

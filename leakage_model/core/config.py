@@ -5,7 +5,7 @@ import os
 # ---------------------------------------------------------------------------
 # Пути вывода — разделение по этапам
 # ---------------------------------------------------------------------------
-_OUTPUT_BASE = os.path.join(os.path.dirname(__file__), "output")
+_OUTPUT_BASE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
 
 OUTPUT_STAGE1 = os.path.join(_OUTPUT_BASE, "stage1_delta_zeta")
 OUTPUT_STAGE1_PLOTS = os.path.join(OUTPUT_STAGE1, "plots")

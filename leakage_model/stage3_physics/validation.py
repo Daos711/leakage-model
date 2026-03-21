@@ -7,10 +7,10 @@ import os
 import numpy as np
 import pandas as pd
 
-from .idelchik import EPS_DEFAULT, L_UPPER_DEFAULT
-from .model import calc_Re
-from .physics_model import solve_all, PhysicsResult
-from .validation import compute_metrics, Metrics
+from ..stage2_idelchik.coefficients import EPS_DEFAULT, L_UPPER_DEFAULT
+from ..stage1_energy.model import calc_Re
+from .model import solve_all, PhysicsResult
+from ..core.validation import compute_metrics, Metrics
 
 logger = logging.getLogger(__name__)
 

@@ -147,7 +147,7 @@ def plot_width_effect(results_df, plates_df, output_dir):
 def plot_r_prediction_best(results_df, plates_df, geom, base_params, beta,
                            L, eps, criterion, output_dir):
     """35_plates_r_prediction_best.png — r(u₁) для лучших 3-4 вставок (M3)."""
-    from .plates_model import predict_plates
+    from .model import predict_plates
 
     # Выбрать 4 лучшие вставки по RMSE_M3
     best = results_df.nsmallest(4, "RMSE_M3")

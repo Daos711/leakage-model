@@ -14,7 +14,7 @@ plt.rcParams.update({
     "grid.alpha": 0.3,
 })
 
-from .config import OUTPUT_STAGE1_PLOTS
+from ..core.config import OUTPUT_STAGE1_PLOTS
 
 OUTPUT_DIR = OUTPUT_STAGE1_PLOTS
 

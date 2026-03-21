@@ -24,11 +24,11 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy.optimize import brentq
 
-from .idelchik import (
+from ..core.friction import churchill_friction
+from .coefficients import (
     VARIANTS,
     L_UPPER_DEFAULT,
     EPS_DEFAULT,
-    churchill_friction,
 )
 
 logger = logging.getLogger(__name__)
@@ -223,7 +223,7 @@ def sensitivity_coefficients(
     Варьируется K_б при K''_п=0 и наоборот.
     Возвращает два массива r: r(K_б) и r(K''_п).
     """
-    from .idelchik import zeta_branch, zeta_straight
+    from .coefficients import zeta_branch, zeta_straight
 
     A_ok = geom["A_ok"]
     A_s = geom["A_s"]

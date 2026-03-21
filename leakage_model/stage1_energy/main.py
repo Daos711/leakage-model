@@ -9,8 +9,8 @@ import pandas as pd
 
 from .calibration import fit_asymptotic, fit_power_law
 from .checks import run_all_checks
-from .config import GEOM_AIR, GEOM_WATER
-from .data import load_calibration_data, load_validation_data
+from ..core.config import GEOM_AIR, GEOM_WATER
+from ..core.data import load_calibration_data, load_validation_data
 from .model import calc_Re, calc_delta_zeta, calc_k_ut, calc_r_explicit, calc_r_newton
 from .plots import (
     plot_dz_Re,
@@ -19,7 +19,7 @@ from .plots import (
     plot_r_calibration,
     plot_r_validation,
 )
-from .validation import compute_metrics, validate
+from ..core.validation import compute_metrics, validate
 from .diagnostics import compute_dz_exp, plot_dz_diagnostic
 from .alternatives import (
     fit_r_power_Re,
@@ -38,7 +38,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from .config import OUTPUT_STAGE1, OUTPUT_STAGE1_1
+from ..core.config import OUTPUT_STAGE1, OUTPUT_STAGE1_1
 
 OUTPUT_DIR = OUTPUT_STAGE1
 OUTPUT_DIR_V2 = OUTPUT_STAGE1_1

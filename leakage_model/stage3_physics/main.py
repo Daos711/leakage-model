@@ -1,6 +1,6 @@
 """Главный модуль этапа 3 — полуэмпирическая физическая модель.
 
-Запуск: python -m leakage_model.main_physics
+Запуск: python -m leakage_model.stage3_physics.main
 """
 
 import logging
@@ -8,20 +8,20 @@ import os
 
 import numpy as np
 
-from .config import (
+from ..core.config import (
     GEOM_WATER, GEOM_AIR, BETA_RAD, BETA_DEG,
     OUTPUT_STAGE3, OUTPUT_STAGE3_PLOTS,
 )
-from .data import load_calibration_data, load_validation_data
-from .idelchik import L_UPPER_DEFAULT, EPS_DEFAULT
-from .model import calc_Re
-from .physics_closures import calc_xi, calc_phi
-from .physics_model import solve_all, borda_carnot_loss_coeff
-from .physics_calibration import calibrate
-from .physics_validation import (
+from ..core.data import load_calibration_data, load_validation_data
+from ..stage2_idelchik.coefficients import L_UPPER_DEFAULT, EPS_DEFAULT
+from ..stage1_energy.model import calc_Re
+from .closures import calc_xi, calc_phi
+from .model import solve_all, borda_carnot_loss_coeff
+from .calibration import calibrate
+from .validation import (
     validate, export_results, check_dimensionless_invariance,
 )
-from .physics_plots import (
+from .plots import (
     plot_r_vs_u1,
     plot_parity,
     plot_xi_and_phi,

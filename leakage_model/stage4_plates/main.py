@@ -1,6 +1,6 @@
 """Этап 4 — учёт направляющих пластин.
 
-Запуск: python -m leakage_model.main_plates
+Запуск: python -m leakage_model.stage4_plates.main
 """
 
 import json
@@ -11,13 +11,13 @@ import sys
 import numpy as np
 import pandas as pd
 
-from .config import GEOM_WATER, BETA_RAD, OUTPUT_STAGE4, OUTPUT_STAGE4_PLOTS
-from .idelchik import L_UPPER_DEFAULT, EPS_DEFAULT
-from .physics_model import solve_all
-from .plates_data import load_plates_with_geometry
-from .plates_model import predict_plates
-from .plates_calibration import calibrate_all
-from .plates_plots import (
+from ..core.config import GEOM_WATER, BETA_RAD, OUTPUT_STAGE4, OUTPUT_STAGE4_PLOTS
+from ..stage2_idelchik.coefficients import L_UPPER_DEFAULT, EPS_DEFAULT
+from ..stage3_physics.model import solve_all
+from .data import load_plates_with_geometry
+from .model import predict_plates
+from .calibration import calibrate_all
+from .plots import (
     plot_rmse_comparison,
     plot_zeta_by_insert,
     plot_dc0_by_insert,
@@ -40,7 +40,7 @@ EPS = EPS_DEFAULT
 def _load_base_params():
     """Загрузить a_ξ, b_ξ, c₀ из physics_parameters.json."""
     params_path = os.path.join(
-        os.path.dirname(__file__), "output", "stage3_physics", "physics_parameters.json"
+        os.path.dirname(os.path.dirname(__file__)), "output", "stage3_physics", "physics_parameters.json"
     )
     with open(params_path) as f:
         params = json.load(f)

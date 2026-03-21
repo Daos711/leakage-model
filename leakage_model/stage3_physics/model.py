@@ -10,9 +10,10 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy.optimize import brentq
 
-from .idelchik import churchill_friction, EPS_DEFAULT, L_UPPER_DEFAULT
-from .model import calc_Re
-from .physics_closures import calc_xi, calc_phi, calc_C_beta
+from ..core.friction import churchill_friction
+from ..stage2_idelchik.coefficients import EPS_DEFAULT, L_UPPER_DEFAULT
+from ..stage1_energy.model import calc_Re
+from .closures import calc_xi, calc_phi, calc_C_beta
 
 logger = logging.getLogger(__name__)
 

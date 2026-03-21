@@ -13,7 +13,7 @@ from .model import calc_delta_zeta, calc_Re
 
 logger = logging.getLogger(__name__)
 
-from .config import OUTPUT_STAGE1_PLOTS
+from ..core.config import OUTPUT_STAGE1_PLOTS
 
 OUTPUT_DIR = OUTPUT_STAGE1_PLOTS
 

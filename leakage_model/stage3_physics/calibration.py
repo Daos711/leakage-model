@@ -8,9 +8,9 @@ import logging
 import numpy as np
 from scipy.optimize import minimize, differential_evolution
 
-from .idelchik import EPS_DEFAULT, L_UPPER_DEFAULT
-from .physics_model import solve_all
-from .validation import compute_metrics
+from ..stage2_idelchik.coefficients import EPS_DEFAULT, L_UPPER_DEFAULT
+from .model import solve_all
+from ..core.validation import compute_metrics
 
 logger = logging.getLogger(__name__)
 

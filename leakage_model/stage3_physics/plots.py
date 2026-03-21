@@ -7,10 +7,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .config import OUTPUT_STAGE3_PLOTS
-from .physics_closures import calc_xi, calc_phi, calc_C_beta
-from .physics_model import solve_all, residual_F
-from .idelchik import L_UPPER_DEFAULT, EPS_DEFAULT
+from ..core.config import OUTPUT_STAGE3_PLOTS
+from .closures import calc_xi, calc_phi, calc_C_beta
+from .model import solve_all, residual_F
+from ..stage2_idelchik.coefficients import L_UPPER_DEFAULT, EPS_DEFAULT
 
 plt.rcParams.update({
     "font.size": 12,

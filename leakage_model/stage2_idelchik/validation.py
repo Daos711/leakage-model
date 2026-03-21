@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from .idelchik import VARIANTS, zeta_branch, zeta_straight, COS_ALPHA
-from .idelchik_model import IdelchikResult
-from .validation import Metrics, compute_metrics
+from .coefficients import VARIANTS, zeta_branch, zeta_straight, COS_ALPHA
+from .model import IdelchikResult
+from ..core.validation import Metrics, compute_metrics
 
 logger = logging.getLogger(__name__)
 
-from .config import OUTPUT_STAGE2, OUTPUT_STAGE2_PLOTS
+from ..core.config import OUTPUT_STAGE2, OUTPUT_STAGE2_PLOTS
 
 OUTPUT_DIR = OUTPUT_STAGE2
 PLOTS_DIR = OUTPUT_STAGE2_PLOTS

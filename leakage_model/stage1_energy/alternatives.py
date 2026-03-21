@@ -12,11 +12,11 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 from .model import calc_Re
-from .validation import Metrics, compute_metrics
+from ..core.validation import Metrics, compute_metrics
 
 logger = logging.getLogger(__name__)
 
-from .config import OUTPUT_STAGE1_1_PLOTS
+from ..core.config import OUTPUT_STAGE1_1_PLOTS
 
 OUTPUT_DIR = OUTPUT_STAGE1_1_PLOTS
 

@@ -6,11 +6,11 @@ import os
 import pandas as pd
 
 from .alternatives import DirectFitResult
-from .validation import Metrics
+from ..core.validation import Metrics
 
 logger = logging.getLogger(__name__)
 
-from .config import OUTPUT_STAGE1_1
+from ..core.config import OUTPUT_STAGE1_1
 
 OUTPUT_DIR = OUTPUT_STAGE1_1
 
