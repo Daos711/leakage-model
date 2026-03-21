@@ -10,7 +10,9 @@ from .validation import Metrics
 
 logger = logging.getLogger(__name__)
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
+from .config import OUTPUT_STAGE1_1
+
+OUTPUT_DIR = OUTPUT_STAGE1_1
 
 
 def build_comparison_table(

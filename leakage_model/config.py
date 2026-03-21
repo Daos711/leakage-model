@@ -1,6 +1,29 @@
 """Геометрические параметры и константы модели."""
 
 import math
+import os
+
+import numpy as np
+
+# ---------------------------------------------------------------------------
+# Пути вывода — разделение по этапам
+# ---------------------------------------------------------------------------
+_OUTPUT_BASE = os.path.join(os.path.dirname(__file__), "output")
+
+OUTPUT_STAGE1 = os.path.join(_OUTPUT_BASE, "stage1_delta_zeta")
+OUTPUT_STAGE1_PLOTS = os.path.join(OUTPUT_STAGE1, "plots")
+
+OUTPUT_STAGE1_1 = os.path.join(_OUTPUT_BASE, "stage1_1_impulse")
+OUTPUT_STAGE1_1_PLOTS = os.path.join(OUTPUT_STAGE1_1, "plots")
+
+OUTPUT_STAGE2 = os.path.join(_OUTPUT_BASE, "stage2_idelchik")
+OUTPUT_STAGE2_PLOTS = os.path.join(OUTPUT_STAGE2, "plots")
+
+OUTPUT_STAGE3 = os.path.join(_OUTPUT_BASE, "stage3_physics")
+OUTPUT_STAGE3_PLOTS = os.path.join(OUTPUT_STAGE3, "plots")
+
+OUTPUT_STAGE4 = os.path.join(_OUTPUT_BASE, "stage4_plates")
+OUTPUT_STAGE4_PLOTS = os.path.join(OUTPUT_STAGE4, "plots")
 
 # Водяная модель (калибровка) — натурный эквивалент
 GEOM_WATER = {
@@ -39,3 +62,10 @@ NO_TITLES = False
 NR_TOL = 1e-12
 NR_MAX_ITER = 100
 NR_MIN_DERIV = 1e-12
+
+# ---------------------------------------------------------------------------
+# Этап 3 — полуэмпирическая физическая модель
+# ---------------------------------------------------------------------------
+
+BETA_DEG = 45.0
+BETA_RAD = np.radians(BETA_DEG)

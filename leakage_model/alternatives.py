@@ -17,7 +17,9 @@ from .validation import Metrics, compute_metrics
 
 logger = logging.getLogger(__name__)
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output", "plots")
+from .config import OUTPUT_STAGE1_1_PLOTS
+
+OUTPUT_DIR = OUTPUT_STAGE1_1_PLOTS
 
 
 @dataclass

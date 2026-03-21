@@ -16,7 +16,9 @@ plt.rcParams.update({
     "grid.alpha": 0.3,
 })
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output", "plots")
+from .config import OUTPUT_STAGE1_PLOTS
+
+OUTPUT_DIR = OUTPUT_STAGE1_PLOTS
 
 
 def _save(fig, name):
