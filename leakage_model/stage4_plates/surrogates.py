@@ -147,9 +147,14 @@ def predict_series4(width_mm, surr):
     x = width_mm / 1000.0
     zc = surr["zeta_coeffs"]
     dc = surr["dc0_coeffs"]
-    zeta = zc["A"] * x ** zc["m"]
+
+    # ζ_пл: если степенной закон не подогнался (NaN коэффициенты) → ζ_пл = 0
+    if np.isnan(zc["A"]) or np.isnan(zc["m"]):
+        zeta = 0.0
+    else:
+        zeta = max(zc["A"] * x ** zc["m"], 0.0)
+
     dc0 = dc["d0"] + dc["d1"] * np.log(x)
-    zeta = max(zeta, 0.0)
     return zeta, dc0
 
 

@@ -112,19 +112,27 @@ def optimize_joint(surrogates, u1, geom, base_params, beta, L, eps,
     zeta_ref_a, dc0_ref_a = predict_series3(45.0, surr3)
     zeta_ref_b, dc0_ref_b = predict_series4(1000.0, surr4)
 
-    # Избегаем деления на 0
-    zeta_ref_a = max(zeta_ref_a, 1e-10)
-    dc0_ref_a = dc0_ref_a if abs(dc0_ref_a) > 1e-10 else 1e-10
-    zeta_ref_b = max(zeta_ref_b, 1e-10)
+    # Проверить валидность ζ_пл суррогата серии 4
+    zeta_s4_valid = (zeta_ref_b > 1e-10 and
+                     not np.isnan(surr4["zeta_coeffs"].get("A", np.nan)))
     dc0_ref_b = dc0_ref_b if abs(dc0_ref_b) > 1e-10 else 1e-10
+
+    if zeta_s4_valid:
+        zeta_ref_a = max(zeta_ref_a, 1e-10)
+        dc0_ref_a = dc0_ref_a if abs(dc0_ref_a) > 1e-10 else 1e-10
 
     def objective(params):
         alpha, width_mm = params
         zeta_a, dc0_a = predict_series3(alpha, surr3)
         zeta_b, dc0_b = predict_series4(width_mm, surr4)
 
-        # Мультипликативная модель: масштабирование от референса
-        zeta = zeta_a * (zeta_b / zeta_ref_b)
+        if zeta_s4_valid:
+            # Мультипликативная модель: масштабирование от референса
+            zeta = zeta_a * (zeta_b / zeta_ref_b)
+        else:
+            # ζ_пл суррогат ширины невалиден — используем только серию 3
+            zeta = zeta_a
+
         dc0 = dc0_a * (dc0_b / dc0_ref_b)
 
         return _solve_r_for_params(max(zeta, 0.0), dc0, u1, geom, base_params,
