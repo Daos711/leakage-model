@@ -129,6 +129,8 @@ def plot_r_vs_angle(opt_details, alpha_opt, r_opt, output_dir):
     ax.plot(alpha_opt, r_opt, "r*", ms=15, zorder=5,
             label=f"α* = {alpha_opt:.1f}°, r* = {r_opt:.4f}")
 
+    ax.axhline(0.138, ls=":", color="gray", lw=1.5, label="без пластин (r = 0.138)")
+
     ax.set_xlabel("Угол наклона α, °")
     ax.set_ylabel("Доля утечек r")
     ax.set_title(f"Оптимизация: r(α) при u₁ = {u1} м/с")
@@ -148,6 +150,8 @@ def plot_r_vs_width(opt_details, width_opt, r_opt, output_dir):
     ax.axvline(width_opt, ls="--", color="red", alpha=0.7)
     ax.plot(width_opt, r_opt, "r*", ms=15, zorder=5,
             label=f"b* = {width_opt:.0f} мм, r* = {r_opt:.4f}")
+
+    ax.axhline(0.138, ls=":", color="gray", lw=1.5, label="без пластин (r = 0.138)")
 
     ax.set_xlabel("Ширина пластины b, мм")
     ax.set_ylabel("Доля утечек r")
