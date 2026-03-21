@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
 
-from .config import RHO
-from .momentum_model import calc_C_M
-from .model import calc_Re
+from ..core.config import RHO
+from .model import calc_C_M
+from ..stage1_energy.model import calc_Re
 
 logger = logging.getLogger(__name__)
 

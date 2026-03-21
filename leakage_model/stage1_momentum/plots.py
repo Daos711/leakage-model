@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from . import config as _cfg
-from .config import RHO
-from .model import calc_k_ut, calc_Re
+from ..core import config as _cfg
+from ..core.config import RHO
+from ..stage1_energy.model import calc_k_ut, calc_Re
 from .solver import solve_r_brent
 
 plt.rcParams.update({
@@ -19,7 +19,8 @@ plt.rcParams.update({
     "grid.alpha": 0.3,
 })
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output", "plots")
+from ..core.config import OUTPUT_STAGE1_1_PLOTS
+OUTPUT_DIR = OUTPUT_STAGE1_1_PLOTS
 
 
 def _save(fig, name):
@@ -202,7 +203,7 @@ def plot_comparison_v3(df_cal_res: pd.DataFrame, df_val_res: pd.DataFrame,
                        geom_cal: dict, geom_val: dict, C_M: float,
                        dz_func_best=None):
     """График 6: Сравнение импульсной модели vs прежняя r(Re)."""
-    from .model import calc_r_explicit
+    from ..stage1_energy.model import calc_r_explicit
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from . import config as _cfg
+from ..core import config as _cfg
 from .model import calc_delta_zeta, calc_Re
 
 logger = logging.getLogger(__name__)

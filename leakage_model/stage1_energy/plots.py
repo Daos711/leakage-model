@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from . import config as _cfg
+from ..core import config as _cfg
 
 plt.rcParams.update({
     "font.size": 12,

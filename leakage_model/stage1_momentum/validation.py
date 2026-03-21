@@ -6,10 +6,10 @@ from typing import Callable, Union
 import numpy as np
 import pandas as pd
 
-from .config import RHO
-from .model import calc_Re, calc_k_ut
+from ..core.config import RHO
+from ..stage1_energy.model import calc_Re, calc_k_ut
 from .solver import solve_r_brent, solve_r_newton
-from .validation import Metrics, compute_metrics
+from ..core.validation import Metrics, compute_metrics
 
 logger = logging.getLogger(__name__)
 

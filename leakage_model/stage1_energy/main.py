@@ -344,6 +344,6 @@ def _parse_args():
 if __name__ == "__main__":
     args = _parse_args()
     if args.no_titles:
-        from leakage_model import config as _cfg
+        from leakage_model.core import config as _cfg
         _cfg.NO_TITLES = True
     main()

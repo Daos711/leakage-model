@@ -8,20 +8,20 @@ import os
 import numpy as np
 import pandas as pd
 
-from .calibration import fit_power_law
-from .calibration_v3 import (
+from ..stage1_energy.calibration import fit_power_law
+from .calibration import (
     CM_FitResult,
     analyze_C_M,
     compute_C_M_table,
     fit_C_M_asymptotic,
     fit_C_M_power,
 )
-from .checks import check_monotonic_decrease, check_r_range
-from .config import GEOM_AIR, GEOM_WATER, RHO
-from .data import load_calibration_data, load_validation_data
+from ..stage1_energy.checks import check_monotonic_decrease, check_r_range
+from ..core.config import GEOM_AIR, GEOM_WATER, RHO
+from ..core.data import load_calibration_data, load_validation_data
 from .friction import churchill_friction
-from .model import calc_Re, calc_delta_zeta, calc_k_ut
-from .plots_v3 import (
+from ..stage1_energy.model import calc_Re, calc_delta_zeta, calc_k_ut
+from .plots import (
     plot_C_M_diagnostics,
     plot_C_M_Re,
     plot_comparison_v3,
@@ -30,7 +30,7 @@ from .plots_v3 import (
     plot_r_calibration_v3,
     plot_r_validation_v3,
 )
-from .validation_v3 import forward_solve, validate_v3, verify_newton_vs_brent
+from .validation import forward_solve, validate_v3, verify_newton_vs_brent
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,7 +38,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
+from ..core.config import OUTPUT_STAGE1_1
+OUTPUT_DIR = OUTPUT_STAGE1_1
 
 
 def main():
@@ -289,6 +290,6 @@ def _parse_args():
 if __name__ == "__main__":
     args = _parse_args()
     if args.no_titles:
-        from leakage_model import config as _cfg
+        from leakage_model.core import config as _cfg
         _cfg.NO_TITLES = True
     main()

@@ -2,8 +2,8 @@
 
 from scipy.optimize import brentq
 
-from .config import NR_MAX_ITER, NR_TOL
-from .momentum_model import momentum_residual
+from ..core.config import NR_MAX_ITER, NR_TOL
+from .model import momentum_residual
 
 
 def solve_r_brent(Q1: float, geom: dict, rho: float, C_M: float) -> float:

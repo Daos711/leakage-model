@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 
-from . import config as _cfg
+from ..core import config as _cfg
 from .model import calc_Re
 from ..core.validation import Metrics, compute_metrics
 
