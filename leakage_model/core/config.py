@@ -1,6 +1,9 @@
 """Геометрические параметры и константы модели."""
 
+import math
 import os
+
+import numpy as np
 
 # ---------------------------------------------------------------------------
 # Пути вывода — разделение по этапам
@@ -16,6 +19,12 @@ OUTPUT_STAGE1_1_PLOTS = os.path.join(OUTPUT_STAGE1_1, "plots")
 OUTPUT_STAGE2 = os.path.join(_OUTPUT_BASE, "stage2_idelchik")
 OUTPUT_STAGE2_PLOTS = os.path.join(OUTPUT_STAGE2, "plots")
 
+OUTPUT_STAGE3 = os.path.join(_OUTPUT_BASE, "stage3_physics")
+OUTPUT_STAGE3_PLOTS = os.path.join(OUTPUT_STAGE3, "plots")
+
+OUTPUT_STAGE4 = os.path.join(_OUTPUT_BASE, "stage4_plates")
+OUTPUT_STAGE4_PLOTS = os.path.join(OUTPUT_STAGE4, "plots")
+
 # Водяная модель (калибровка) — натурный эквивалент
 GEOM_WATER = {
     "D": 8.0,        # м, диаметр ствола
@@ -25,18 +34,29 @@ GEOM_WATER = {
     "A_ok": 12.0,    # м², площадь окна
     "D_h": 3.43,     # м, гидравл. диаметр окна
     "nu": 1.5e-5,    # м²/с, кинематическая вязкость воздуха (Re натуры)
+    "L_up": 111.5,   # м, длина верхнего участка (от КО до устья)
+    "beta": math.radians(45),  # рад, угол канала к вертикали
 }
 
 # Воздушная модель (валидация) — натурный эквивалент
 GEOM_AIR = {
     "D": 8.0,        # м, диаметр ствола
-    "A_s": 50.27,    # м², площадь ствола
+    "A_s": 50.3,     # м², площадь ствола
     "b_ok": 4.0,     # м, ширина окна
     "h_ok": 5.0,     # м, высота окна
     "A_ok": 20.0,    # м², площадь окна
     "D_h": 4.44,     # м, гидравл. диаметр окна
     "nu": 1.5e-5,    # м²/с, кинематическая вязкость воздуха
+    "L_up": 111.5,   # м, длина верхнего участка (от КО до устья)
+    "beta": math.radians(45),  # рад, угол канала к вертикали
 }
+
+# Свойства среды (воздух натуры)
+RHO = 1.2          # кг/м³, плотность воздуха
+P_ATM = 101325     # Па, атмосферное давление
+
+# Флаг отключения заголовков на графиках (--no-titles)
+NO_TITLES = False
 
 # Параметры Newton-Raphson
 NR_TOL = 1e-12
@@ -46,13 +66,6 @@ NR_MIN_DERIV = 1e-12
 # ---------------------------------------------------------------------------
 # Этап 3 — полуэмпирическая физическая модель
 # ---------------------------------------------------------------------------
-import numpy as np
 
 BETA_DEG = 45.0
 BETA_RAD = np.radians(BETA_DEG)
-
-OUTPUT_STAGE3 = os.path.join(_OUTPUT_BASE, "stage3_physics")
-OUTPUT_STAGE3_PLOTS = os.path.join(OUTPUT_STAGE3, "plots")
-
-OUTPUT_STAGE4 = os.path.join(_OUTPUT_BASE, "stage4_plates")
-OUTPUT_STAGE4_PLOTS = os.path.join(OUTPUT_STAGE4, "plots")

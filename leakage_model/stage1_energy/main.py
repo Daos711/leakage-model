@@ -1,5 +1,6 @@
 """Главный модуль: запуск полного расчёта (шаги 1–12)."""
 
+import argparse
 import json
 import logging
 import os
@@ -333,5 +334,16 @@ def main():
         )
 
 
+def _parse_args():
+    parser = argparse.ArgumentParser(description="Leakage model (v1)")
+    parser.add_argument("--no-titles", action="store_true",
+                        help="Генерировать графики без заголовков")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
+    args = _parse_args()
+    if args.no_titles:
+        from leakage_model import config as _cfg
+        _cfg.NO_TITLES = True
     main()
