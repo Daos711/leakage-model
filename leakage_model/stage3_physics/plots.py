@@ -56,7 +56,6 @@ def plot_r_vs_u1(u1_cal, r_cal, result_cal, u1_val, r_val, result_val,
 
     ax.set_xlabel("u₁, м/с")
     ax.set_ylabel("r = Q₂/Q₁")
-    ax.set_title("Полуэмпирическая модель: r(u₁)")
     ax.legend()
     ax.set_ylim(bottom=0)
     return _save(fig, "20_physics_r_prediction.png")
@@ -78,7 +77,6 @@ def plot_parity(r_cal, result_cal, r_val, result_val):
 
     ax.set_xlabel("r_exp")
     ax.set_ylabel("r_pred")
-    ax.set_title("Parity plot")
     ax.legend(loc="upper left")
     ax.set_xlim(lims)
     ax.set_ylim(lims)
@@ -110,7 +108,6 @@ def plot_xi_and_phi(u1_cal, result_cal, u1_val, result_val,
     axes[0].plot(u1_val, result_val.xi, "rs", ms=6)
     axes[0].set_xlabel("u₁, м/с")
     axes[0].set_ylabel("ξ")
-    axes[0].set_title("Параметр блокировки ξ(u₁)")
     axes[0].legend()
     axes[0].set_ylim(-0.05, 1.05)
 
@@ -133,7 +130,6 @@ def plot_xi_and_phi(u1_cal, result_cal, u1_val, result_val,
 
     axes[1].set_xlabel("u₁, м/с")
     axes[1].set_ylabel("φ")
-    axes[1].set_title("Коэффициенты сжатия φ(u₁)")
     axes[1].legend(fontsize=9)
 
     # Правый: C_β(u₁)
@@ -154,7 +150,6 @@ def plot_xi_and_phi(u1_cal, result_cal, u1_val, result_val,
     axes[2].plot(u1_val, result_val.C_beta, "rs", ms=6)
     axes[2].set_xlabel("u₁, м/с")
     axes[2].set_ylabel("C_β")
-    axes[2].set_title("Асимметричный член C_β(u₁)")
     axes[2].legend()
 
     fig.tight_layout()
@@ -179,7 +174,6 @@ def plot_sensitivity(u1_cal, r_cal, geom_cal, a_xi, b_xi, c0, beta,
     axes[0].plot(u1_cal, r_cal, "ko", ms=7, label="Эксп.", zorder=10)
     axes[0].set_xlabel("u₁, м/с")
     axes[0].set_ylabel("r")
-    axes[0].set_title(f"Чувствительность к a_ξ (b_ξ={b_xi:.3f}, c₀={c0:.3f})")
     axes[0].legend(fontsize=9)
     axes[0].set_ylim(bottom=0)
 
@@ -194,7 +188,6 @@ def plot_sensitivity(u1_cal, r_cal, geom_cal, a_xi, b_xi, c0, beta,
     axes[1].plot(u1_cal, r_cal, "ko", ms=7, label="Эксп.", zorder=10)
     axes[1].set_xlabel("u₁, м/с")
     axes[1].set_ylabel("r")
-    axes[1].set_title(f"Чувствительность к b_ξ (a_ξ={a_xi:.3f}, c₀={c0:.3f})")
     axes[1].legend(fontsize=9)
     axes[1].set_ylim(bottom=0)
 
@@ -209,7 +202,6 @@ def plot_sensitivity(u1_cal, r_cal, geom_cal, a_xi, b_xi, c0, beta,
     axes[2].plot(u1_cal, r_cal, "ko", ms=7, label="Эксп.", zorder=10)
     axes[2].set_xlabel("u₁, м/с")
     axes[2].set_ylabel("r")
-    axes[2].set_title(f"Чувствительность к c₀ (a_ξ={a_xi:.3f}, b_ξ={b_xi:.3f})")
     axes[2].legend(fontsize=9)
     axes[2].set_ylim(bottom=0)
 
@@ -234,6 +226,5 @@ def plot_F_residual(geom, a_xi, b_xi, c0, beta, u1_values,
     ax.axhline(0, color="k", lw=0.8, ls="--")
     ax.set_xlabel("r")
     ax.set_ylabel("F̃(r)")
-    ax.set_title("Невязка F̃(r) — проверка единственности корня")
     ax.legend()
     return _save(fig, "24_physics_residual_F.png")

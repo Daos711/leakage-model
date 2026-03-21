@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 
-from ..core import config as _cfg
 from .model import calc_Re
 from ..core.validation import Metrics, compute_metrics
 
@@ -263,8 +262,6 @@ def plot_all_models_calibration(
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    if not _cfg.NO_TITLES:
-        ax.set_title("Калибровка: все альтернативные модели r(u₁)")
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
 
@@ -303,8 +300,6 @@ def plot_all_models_validation(
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    if not _cfg.NO_TITLES:
-        ax.set_title("Валидация: все альтернативные модели r(u₁)\n(воздушная модель, A_ок=20 м²)")
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
 
@@ -339,8 +334,6 @@ def plot_parity_best(
 
     ax.set_xlabel("r эксперимент")
     ax.set_ylabel("r расчёт")
-    if not _cfg.NO_TITLES:
-        ax.set_title(f"Parity plot: {best_fit.name}")
     ax.set_aspect("equal")
     ax.legend()
     ax.set_xlim(lims)

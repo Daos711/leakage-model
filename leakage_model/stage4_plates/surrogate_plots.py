@@ -48,7 +48,6 @@ def plot_dc0_vs_angle(angles, delta_c0, surr3, output_dir):
 
     ax.set_xlabel("Угол наклона α, °")
     ax.set_ylabel("Δc₀")
-    ax.set_title("Серия 3: Δc₀(α) — направляющий эффект")
     ax.legend()
     return _save(fig, output_dir, "40_surr_dc0_vs_angle.png")
 
@@ -69,7 +68,6 @@ def plot_zeta_vs_angle(angles, zeta_pl, surr3, output_dir):
 
     ax.set_xlabel("Угол наклона α, °")
     ax.set_ylabel("ζ_пл")
-    ax.set_title("Серия 3: ζ_пл(α) — сопротивление пластины")
     ax.legend()
     return _save(fig, output_dir, "41_surr_zeta_vs_angle.png")
 
@@ -90,7 +88,6 @@ def plot_zeta_vs_width(widths, zeta_pl, surr4, output_dir):
 
     ax.set_xlabel("Ширина пластины b, мм")
     ax.set_ylabel("ζ_пл")
-    ax.set_title("Серия 4: ζ_пл(b) — сопротивление пластины")
     ax.legend()
     return _save(fig, output_dir, "42_surr_zeta_vs_width.png")
 
@@ -111,7 +108,6 @@ def plot_dc0_vs_width(widths, delta_c0, surr4, output_dir):
 
     ax.set_xlabel("Ширина пластины b, мм")
     ax.set_ylabel("Δc₀")
-    ax.set_title("Серия 4: Δc₀(b) — направляющий эффект")
     ax.legend()
     return _save(fig, output_dir, "43_surr_dc0_vs_width.png")
 
@@ -133,7 +129,6 @@ def plot_r_vs_angle(opt_details, alpha_opt, r_opt, output_dir):
 
     ax.set_xlabel("Угол наклона α, °")
     ax.set_ylabel("Доля утечек r")
-    ax.set_title(f"Оптимизация: r(α) при u₁ = {u1} м/с")
     ax.legend()
     return _save(fig, output_dir, "44_surr_r_vs_angle.png")
 
@@ -155,6 +150,5 @@ def plot_r_vs_width(opt_details, width_opt, r_opt, output_dir):
 
     ax.set_xlabel("Ширина пластины b, мм")
     ax.set_ylabel("Доля утечек r")
-    ax.set_title(f"Оптимизация: r(b) при α=45°, u₁ = {u1} м/с")
     ax.legend()
     return _save(fig, output_dir, "45_surr_r_vs_width.png")

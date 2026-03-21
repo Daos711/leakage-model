@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from ..core import config as _cfg
 from .model import calc_delta_zeta, calc_Re
 
 logger = logging.getLogger(__name__)
@@ -46,8 +45,6 @@ def plot_dz_diagnostic(
 
     ax.set_xlabel("Число Рейнольдса Re")
     ax.set_ylabel("Δζ_exp")
-    if not _cfg.NO_TITLES:
-        ax.set_title("Диагностика: Δζ_exp(Re) — вода vs воздух")
     ax.legend()
     ax.grid(True, alpha=0.3)
 

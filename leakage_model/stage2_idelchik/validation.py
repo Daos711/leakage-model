@@ -76,7 +76,6 @@ def plot_r_prediction(
                     label=f"Идельчик {key}: {res.variant_name}")
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    ax.set_title("Водяная модель (A_ок=12 м², F_б/F_c≈4,17)")
     ax.legend(fontsize=9)
 
     # Правый: воздушная модель
@@ -91,13 +90,8 @@ def plot_r_prediction(
                     marker="s", ms=5, lw=2,
                     label=f"Идельчик {key}: {res.variant_name}")
     ax.set_xlabel("Скорость u₁, м/с")
-    ax.set_title("Воздушная модель (A_ок=20 м², F_б/F_c≈2,51)")
     ax.legend(fontsize=9)
 
-    fig.suptitle(
-        "Предсказание модели Идельчика vs эксперимент",
-        fontsize=14, fontweight="bold",
-    )
     fig.tight_layout()
     return _save(fig, "10_idelchik_r_prediction.png")
 
@@ -131,13 +125,8 @@ def plot_zeta_curves(geom_water, geom_air):
         fb_fc = A_s / A_ok
         ax.set_xlabel("Доля утечек r")
         ax.set_ylabel("ζ")
-        ax.set_title(f"{title_suffix}\nσ={sigma:.3f}, F_б/F_c={fb_fc:.2f}")
         ax.legend(fontsize=10)
 
-    fig.suptitle(
-        "Коэффициенты сопротивления Идельчика (вариант А)",
-        fontsize=14, fontweight="bold",
-    )
     fig.tight_layout()
     return _save(fig, "11_idelchik_zeta_curves.png")
 
@@ -175,7 +164,6 @@ def plot_parity_idelchik(results_water, results_air, df_cal, df_val):
 
     ax.set_xlabel("r эксперимент")
     ax.set_ylabel("r Идельчик")
-    ax.set_title("Parity plot: модель Идельчика")
     ax.set_aspect("equal")
     ax.legend(fontsize=8)
     ax.set_xlim(lims)
@@ -236,13 +224,8 @@ def plot_all_models_comparison(
         ax.set_xlabel("Скорость u₁, м/с")
         if ax_idx == 0:
             ax.set_ylabel("Доля утечек r")
-        ax.set_title(f"{label_data}")
         ax.legend(fontsize=8)
 
-    fig.suptitle(
-        "Сравнение моделей: Идельчик vs эмпирические",
-        fontsize=14, fontweight="bold",
-    )
     fig.tight_layout()
     return _save(fig, "13_idelchik_all_models.png")
 
@@ -267,7 +250,6 @@ def plot_sensitivity(
         ax.plot(np.array(L_values)[mask], r_vs_L[mask], "b-o", lw=2)
     ax.set_xlabel("L_верх, м")
     ax.set_ylabel("r")
-    ax.set_title("Чувствительность к L_верх")
 
     # r(K_б)
     ax = axes[1]
@@ -276,7 +258,6 @@ def plot_sensitivity(
         ax.plot(np.array(Kb_values)[mask], r_vs_Kb[mask], "g-o", lw=2)
     ax.set_xlabel("K_б")
     ax.set_ylabel("r")
-    ax.set_title("Чувствительность к K_б")
 
     # r(K''_п)
     ax = axes[2]
@@ -285,12 +266,7 @@ def plot_sensitivity(
         ax.plot(np.array(Kpp_values)[mask], r_vs_Kpp[mask], "r-o", lw=2)
     ax.set_xlabel("K''_п")
     ax.set_ylabel("r")
-    ax.set_title("Чувствительность к K''_п")
 
-    fig.suptitle(
-        f"Чувствительность модели Идельчика ({geom_label})",
-        fontsize=14, fontweight="bold",
-    )
     fig.tight_layout()
     return _save(fig, f"14_idelchik_sensitivity_{geom_label}.png")
 

@@ -63,9 +63,6 @@ GEOM_AIR = {
 RHO = 1.2          # кг/м³, плотность воздуха
 P_ATM = 101325     # Па, атмосферное давление
 
-# Флаг отключения заголовков на графиках (--no-titles)
-NO_TITLES = False
-
 # Параметры Newton-Raphson
 NR_TOL = 1e-12
 NR_MAX_ITER = 100
