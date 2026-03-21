@@ -28,6 +28,11 @@ OUTPUT_STAGE4_PLOTS = os.path.join(OUTPUT_STAGE4, "plots")
 OUTPUT_STAGE4_SURROGATES = os.path.join(OUTPUT_STAGE4, "surrogates")
 OUTPUT_STAGE4_SURR_PLOTS = os.path.join(OUTPUT_STAGE4_SURROGATES, "plots")
 
+OUTPUT_STAGE4_JOINT = os.path.join(_OUTPUT_BASE, "stage4_plates_joint")
+OUTPUT_STAGE4_JOINT_PLOTS = os.path.join(OUTPUT_STAGE4_JOINT, "plots")
+OUTPUT_STAGE4_JOINT_SURROGATES = os.path.join(OUTPUT_STAGE4_JOINT, "surrogates")
+OUTPUT_STAGE4_JOINT_SURR_PLOTS = os.path.join(OUTPUT_STAGE4_JOINT_SURROGATES, "plots")
+
 # Водяная модель (калибровка) — натурный эквивалент
 GEOM_WATER = {
     "D": 8.0,        # м, диаметр ствола

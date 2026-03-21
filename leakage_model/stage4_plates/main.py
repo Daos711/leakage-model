@@ -1,8 +1,10 @@
 """Этап 4 — учёт направляющих пластин.
 
 Запуск: python -m leakage_model.stage4_plates.main
+       python -m leakage_model.stage4_plates.main --joint
 """
 
+import argparse
 import json
 import logging
 import os
@@ -11,7 +13,11 @@ import sys
 import numpy as np
 import pandas as pd
 
-from ..core.config import GEOM_WATER, BETA_RAD, OUTPUT_STAGE4, OUTPUT_STAGE4_PLOTS
+from ..core.config import (
+    GEOM_WATER, BETA_RAD,
+    OUTPUT_STAGE4, OUTPUT_STAGE4_PLOTS,
+    OUTPUT_STAGE4_JOINT, OUTPUT_STAGE4_JOINT_PLOTS,
+)
 from ..stage2_idelchik.coefficients import L_UPPER_DEFAULT, EPS_DEFAULT
 from ..stage3_physics.model import solve_all
 from .data import load_plates_with_geometry
@@ -36,18 +42,22 @@ CRITERION = "Re"
 L_UPPER = L_UPPER_DEFAULT
 EPS = EPS_DEFAULT
 
+_OUTPUT_BASE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
+_PARAMS_DEFAULT = os.path.join(_OUTPUT_BASE, "stage3_physics", "physics_parameters.json")
+_PARAMS_JOINT = os.path.join(_OUTPUT_BASE, "stage3_physics", "physics_parameters_joint.json")
 
-def _load_base_params():
-    """Загрузить a_ξ, b_ξ, c₀ из physics_parameters.json."""
-    params_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "output", "stage3_physics", "physics_parameters.json"
-    )
+
+def _load_base_params(params_path=None):
+    """Загрузить a_ξ, b_ξ, c₀ из JSON файла параметров."""
+    if params_path is None:
+        params_path = _PARAMS_DEFAULT
     with open(params_path) as f:
         params = json.load(f)
     a_xi = params["a_xi"]
     b_xi = params["b_xi"]
     c0 = params["c0"]
-    logger.info("Базовые параметры: a_ξ=%.4f, b_ξ=%.4f, c₀=%.4f", a_xi, b_xi, c0)
+    logger.info("Базовые параметры (%s): a_ξ=%.4f, b_ξ=%.4f, c₀=%.4f",
+                os.path.basename(params_path), a_xi, b_xi, c0)
     return a_xi, b_xi, c0
 
 
@@ -74,12 +84,17 @@ def _check_baseline(plates_df, geom, base_params, beta):
                      u1_all[i], r_exp_all[i], result.r_pred[i], err[i])
 
 
-def main():
-    os.makedirs(OUTPUT_STAGE4, exist_ok=True)
-    os.makedirs(OUTPUT_STAGE4_PLOTS, exist_ok=True)
+def main(params_path=None, output_dir=None, plots_dir=None, label=""):
+    if output_dir is None:
+        output_dir = OUTPUT_STAGE4
+    if plots_dir is None:
+        plots_dir = os.path.join(output_dir, "plots")
+
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(plots_dir, exist_ok=True)
 
     logger.info("=" * 60)
-    logger.info("ЭТАП 4 — УЧЁТ НАПРАВЛЯЮЩИХ ПЛАСТИН")
+    logger.info("ЭТАП 4 — УЧЁТ НАПРАВЛЯЮЩИХ ПЛАСТИН %s", label)
     logger.info("=" * 60)
 
     # --- Шаг 1: Загрузка данных ---
@@ -90,10 +105,10 @@ def main():
     logger.info("Загружено: %d вставок, %d точек (Q=25 уже исключена)", n_inserts, n_points)
 
     # Сохранить сырые данные
-    plates_df.to_csv(os.path.join(OUTPUT_STAGE4, "plates_data.csv"), index=False)
+    plates_df.to_csv(os.path.join(output_dir, "plates_data.csv"), index=False)
 
     # --- Загрузка базовых параметров ---
-    a_xi, b_xi, c0 = _load_base_params()
+    a_xi, b_xi, c0 = _load_base_params(params_path)
     base_params = (a_xi, b_xi, c0)
     geom = GEOM_WATER
 
@@ -134,7 +149,7 @@ def main():
                        "RMSE_M1", "RMSE_M2", "RMSE_M3",
                        "AICc_M1", "AICc_M2", "AICc_M3"]
     comparison_df = results_df[comparison_cols].copy()
-    comparison_df.to_csv(os.path.join(OUTPUT_STAGE4, "plates_comparison.csv"), index=False)
+    comparison_df.to_csv(os.path.join(output_dir, "plates_comparison.csv"), index=False)
 
     # --- Шаг 5: Анализ параметров ---
     logger.info("=== Шаг 5: Анализ параметров ===")
@@ -172,24 +187,24 @@ def main():
 
     # --- Шаг 6: Графики ---
     logger.info("=== Шаг 6: Графики ===")
-    p1 = plot_rmse_comparison(results_df, OUTPUT_STAGE4_PLOTS)
+    p1 = plot_rmse_comparison(results_df, plots_dir)
     logger.info("  График 1: %s", p1)
 
-    p2 = plot_zeta_by_insert(results_df, OUTPUT_STAGE4_PLOTS)
+    p2 = plot_zeta_by_insert(results_df, plots_dir)
     logger.info("  График 2: %s", p2)
 
-    p3 = plot_dc0_by_insert(results_df, OUTPUT_STAGE4_PLOTS)
+    p3 = plot_dc0_by_insert(results_df, plots_dir)
     logger.info("  График 3: %s", p3)
 
-    p4 = plot_angle_effect(results_df, plates_df, OUTPUT_STAGE4_PLOTS)
+    p4 = plot_angle_effect(results_df, plates_df, plots_dir)
     logger.info("  График 4: %s", p4)
 
-    p5 = plot_width_effect(results_df, plates_df, OUTPUT_STAGE4_PLOTS)
+    p5 = plot_width_effect(results_df, plates_df, plots_dir)
     logger.info("  График 5: %s", p5)
 
     p6 = plot_r_prediction_best(
         results_df, plates_df, geom, base_params, BETA_RAD,
-        L_UPPER, EPS, CRITERION, OUTPUT_STAGE4_PLOTS,
+        L_UPPER, EPS, CRITERION, plots_dir,
     )
     logger.info("  График 6: %s", p6)
 
@@ -199,18 +214,18 @@ def main():
     # plates_parameters_M1.csv
     m1_df = results_df[["insert_id", "insert_name", "zeta_pl_M1", "RMSE_M1"]].copy()
     m1_df.columns = ["insert_id", "insert_name", "zeta_pl", "RMSE"]
-    m1_df.to_csv(os.path.join(OUTPUT_STAGE4, "plates_parameters_M1.csv"), index=False)
+    m1_df.to_csv(os.path.join(output_dir, "plates_parameters_M1.csv"), index=False)
 
     # plates_parameters_M2.csv
     m2_df = results_df[["insert_id", "insert_name", "delta_c0_M2", "RMSE_M2"]].copy()
     m2_df.columns = ["insert_id", "insert_name", "delta_c0", "RMSE"]
-    m2_df.to_csv(os.path.join(OUTPUT_STAGE4, "plates_parameters_M2.csv"), index=False)
+    m2_df.to_csv(os.path.join(output_dir, "plates_parameters_M2.csv"), index=False)
 
     # plates_parameters_M3.csv
     m3_df = results_df[["insert_id", "insert_name", "zeta_pl_M3", "delta_c0_M3",
                          "RMSE_M3", "AICc_M3"]].copy()
     m3_df.columns = ["insert_id", "insert_name", "zeta_pl", "delta_c0", "RMSE", "AICc"]
-    m3_df.to_csv(os.path.join(OUTPUT_STAGE4, "plates_parameters_M3.csv"), index=False)
+    m3_df.to_csv(os.path.join(output_dir, "plates_parameters_M3.csv"), index=False)
 
     # plates_prediction_M3.csv — по точкам
     pred_records = []
@@ -236,9 +251,9 @@ def main():
             })
 
     pred_df = pd.DataFrame(pred_records)
-    pred_df.to_csv(os.path.join(OUTPUT_STAGE4, "plates_prediction_M3.csv"), index=False)
+    pred_df.to_csv(os.path.join(output_dir, "plates_prediction_M3.csv"), index=False)
 
-    logger.info("Экспортировано в %s", OUTPUT_STAGE4)
+    logger.info("Экспортировано в %s", output_dir)
 
     # --- Шаг 8: Итоговый отчёт ---
     logger.info("=" * 60)
@@ -275,4 +290,15 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--joint", action="store_true",
+                        help="Использовать совместную калибровку (вода + воздух)")
+    args = parser.parse_args()
+
+    if args.joint:
+        main(params_path=_PARAMS_JOINT,
+             output_dir=OUTPUT_STAGE4_JOINT,
+             plots_dir=OUTPUT_STAGE4_JOINT_PLOTS,
+             label="(совместная калибровка)")
+    else:
+        main()

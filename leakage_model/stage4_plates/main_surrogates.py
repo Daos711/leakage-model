@@ -1,8 +1,10 @@
 """Этап 4.1/4.2 — суррогатные модели и оптимизация пластин.
 
 Запуск: python -m leakage_model.stage4_plates.main_surrogates
+       python -m leakage_model.stage4_plates.main_surrogates --joint
 """
 
+import argparse
 import json
 import logging
 import os
@@ -13,6 +15,7 @@ import pandas as pd
 from ..core.config import (
     GEOM_WATER, BETA_RAD,
     OUTPUT_STAGE4, OUTPUT_STAGE4_SURROGATES, OUTPUT_STAGE4_SURR_PLOTS,
+    OUTPUT_STAGE4_JOINT, OUTPUT_STAGE4_JOINT_SURROGATES, OUTPUT_STAGE4_JOINT_SURR_PLOTS,
 )
 from ..stage2_idelchik.coefficients import L_UPPER_DEFAULT, EPS_DEFAULT
 from .data import load_plates_with_geometry
@@ -21,7 +24,7 @@ from .surrogates import (
     fit_series4_width,
     fit_series1_nplates,
 )
-from .optimization import optimize_angle, optimize_width, optimize_joint
+from .optimization import optimize_angle, optimize_width, optimize_joint, optimize_multi_speed
 from .surrogate_plots import (
     plot_dc0_vs_angle,
     plot_zeta_vs_angle,
@@ -42,21 +45,25 @@ L_UPPER = L_UPPER_DEFAULT
 EPS = EPS_DEFAULT
 U1_WORK = 12.5  # рабочая скорость, м/с
 
+_OUTPUT_BASE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
+_PARAMS_DEFAULT = os.path.join(_OUTPUT_BASE, "stage3_physics", "physics_parameters.json")
+_PARAMS_JOINT = os.path.join(_OUTPUT_BASE, "stage3_physics", "physics_parameters_joint.json")
 
-def _load_base_params():
-    """Загрузить a_ξ, b_ξ, c₀ из physics_parameters.json."""
-    params_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "output",
-        "stage3_physics", "physics_parameters.json"
-    )
+
+def _load_base_params(params_path=None):
+    """Загрузить a_ξ, b_ξ, c₀ из JSON файла параметров."""
+    if params_path is None:
+        params_path = _PARAMS_DEFAULT
     with open(params_path) as f:
         params = json.load(f)
     return params["a_xi"], params["b_xi"], params["c0"]
 
 
-def _load_m3_params():
+def _load_m3_params(stage4_dir=None):
     """Загрузить параметры M3 из plates_parameters_M3.csv."""
-    path = os.path.join(OUTPUT_STAGE4, "plates_parameters_M3.csv")
+    if stage4_dir is None:
+        stage4_dir = OUTPUT_STAGE4
+    path = os.path.join(stage4_dir, "plates_parameters_M3.csv")
     return pd.read_csv(path)
 
 
@@ -75,19 +82,25 @@ def _json_safe(obj):
     return obj
 
 
-def main():
-    os.makedirs(OUTPUT_STAGE4_SURROGATES, exist_ok=True)
-    os.makedirs(OUTPUT_STAGE4_SURR_PLOTS, exist_ok=True)
+def main(params_path=None, stage4_dir=None, surr_dir=None, surr_plots_dir=None,
+         label=""):
+    if surr_dir is None:
+        surr_dir = OUTPUT_STAGE4_SURROGATES
+    if surr_plots_dir is None:
+        surr_plots_dir = OUTPUT_STAGE4_SURR_PLOTS
+
+    os.makedirs(surr_dir, exist_ok=True)
+    os.makedirs(surr_plots_dir, exist_ok=True)
 
     logger.info("=" * 60)
-    logger.info("ЭТАП 4.1 — СУРРОГАТНЫЕ МОДЕЛИ ДЛЯ ПАРАМЕТРОВ ПЛАСТИН")
+    logger.info("ЭТАП 4.1 — СУРРОГАТНЫЕ МОДЕЛИ ДЛЯ ПАРАМЕТРОВ ПЛАСТИН %s", label)
     logger.info("=" * 60)
 
     # === Шаг 1: Загрузка данных ===
     logger.info("=== Шаг 1: Загрузка данных ===")
-    m3_df = _load_m3_params()
+    m3_df = _load_m3_params(stage4_dir)
     plates_df = load_plates_with_geometry()
-    a_xi, b_xi, c0 = _load_base_params()
+    a_xi, b_xi, c0 = _load_base_params(params_path)
     base_params = (a_xi, b_xi, c0)
     geom = GEOM_WATER
 
@@ -170,19 +183,25 @@ def main():
         surrogates, U1_WORK, geom, base_params, BETA_RAD, L_UPPER, EPS, CRITERION,
     )
 
+    # Оптимизация по всем скоростям
+    logger.info("=== Оптимизация по углу для всех скоростей ===")
+    multi_speed = optimize_multi_speed(
+        surrogates, geom, base_params, BETA_RAD, L_UPPER, EPS, CRITERION,
+    )
+
     # === Шаг 4: Графики ===
     logger.info("=== Шаг 4: Графики ===")
-    p1 = plot_dc0_vs_angle(angles_s3, dc0_s3, surr3, OUTPUT_STAGE4_SURR_PLOTS)
+    p1 = plot_dc0_vs_angle(angles_s3, dc0_s3, surr3, surr_plots_dir)
     logger.info("  %s", p1)
-    p2 = plot_zeta_vs_angle(angles_s3, zeta_s3, surr3, OUTPUT_STAGE4_SURR_PLOTS)
+    p2 = plot_zeta_vs_angle(angles_s3, zeta_s3, surr3, surr_plots_dir)
     logger.info("  %s", p2)
-    p3 = plot_zeta_vs_width(widths_s4, zeta_s4, surr4, OUTPUT_STAGE4_SURR_PLOTS)
+    p3 = plot_zeta_vs_width(widths_s4, zeta_s4, surr4, surr_plots_dir)
     logger.info("  %s", p3)
-    p4 = plot_dc0_vs_width(widths_s4, dc0_s4, surr4, OUTPUT_STAGE4_SURR_PLOTS)
+    p4 = plot_dc0_vs_width(widths_s4, dc0_s4, surr4, surr_plots_dir)
     logger.info("  %s", p4)
-    p5 = plot_r_vs_angle(det_a, alpha_opt, r_opt_a, OUTPUT_STAGE4_SURR_PLOTS)
+    p5 = plot_r_vs_angle(det_a, alpha_opt, r_opt_a, surr_plots_dir)
     logger.info("  %s", p5)
-    p6 = plot_r_vs_width(det_w, width_opt, r_opt_w, OUTPUT_STAGE4_SURR_PLOTS)
+    p6 = plot_r_vs_width(det_w, width_opt, r_opt_w, surr_plots_dir)
     logger.info("  %s", p6)
 
     # === Шаг 5: Экспорт ===
@@ -215,7 +234,7 @@ def main():
         },
     }
 
-    surr_path = os.path.join(OUTPUT_STAGE4_SURROGATES, "surrogate_params.json")
+    surr_path = os.path.join(surr_dir, "surrogate_params.json")
     with open(surr_path, "w", encoding="utf-8") as f:
         json.dump(_json_safe(surr_export), f, indent=2, ensure_ascii=False)
     logger.info("  %s", surr_path)
@@ -237,9 +256,10 @@ def main():
             "r_opt": r_j,
             "note": det_j.get("note", ""),
         },
+        "multi_speed": multi_speed,
     }
 
-    opt_path = os.path.join(OUTPUT_STAGE4_SURROGATES, "optimization_results.json")
+    opt_path = os.path.join(surr_dir, "optimization_results.json")
     with open(opt_path, "w", encoding="utf-8") as f:
         json.dump(_json_safe(opt_export), f, indent=2, ensure_ascii=False)
     logger.info("  %s", opt_path)
@@ -265,4 +285,16 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--joint", action="store_true",
+                        help="Использовать совместную калибровку (вода + воздух)")
+    args = parser.parse_args()
+
+    if args.joint:
+        main(params_path=_PARAMS_JOINT,
+             stage4_dir=OUTPUT_STAGE4_JOINT,
+             surr_dir=OUTPUT_STAGE4_JOINT_SURROGATES,
+             surr_plots_dir=OUTPUT_STAGE4_JOINT_SURR_PLOTS,
+             label="(совместная калибровка)")
+    else:
+        main()

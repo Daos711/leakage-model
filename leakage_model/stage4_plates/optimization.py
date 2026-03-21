@@ -64,7 +64,7 @@ def optimize_angle(surrogates, u1, geom, base_params, beta, L, eps,
 
 def optimize_width(surrogates, u1, geom, base_params, beta, L, eps,
                    criterion="Re"):
-    """Найти оптимальную ширину b*.
+    """Найти оптимальную ширину b* ∈ [100, 1000] мм.
 
     Возвращает (width_opt, r_opt, details).
     """
@@ -75,13 +75,13 @@ def optimize_width(surrogates, u1, geom, base_params, beta, L, eps,
         return _solve_r_for_params(zeta, dc0, u1, geom, base_params, beta, L, eps,
                                    criterion)
 
-    result = minimize_scalar(objective, bounds=(100.0, 1500.0), method="bounded",
+    result = minimize_scalar(objective, bounds=(100.0, 1000.0), method="bounded",
                              options={"xatol": 1.0})
     width_opt = result.x
     r_opt = result.fun
 
     # Профиль r(b)
-    widths = np.linspace(100, 1500, 141)
+    widths = np.linspace(100, 1000, 91)
     r_profile = np.array([objective(b) for b in widths])
 
     details = {
@@ -131,7 +131,7 @@ def optimize_joint(surrogates, u1, geom, base_params, beta, L, eps,
                                    beta, L, eps, criterion)
 
     result = minimize(objective, x0=[40.0, 750.0],
-                      bounds=[(20.0, 65.0), (100.0, 1500.0)],
+                      bounds=[(20.0, 65.0), (100.0, 1000.0)],
                       method="L-BFGS-B")
     alpha_opt, width_opt = result.x
     r_opt = result.fun
@@ -145,3 +145,51 @@ def optimize_joint(surrogates, u1, geom, base_params, beta, L, eps,
                 alpha_opt, width_opt, r_opt, u1)
 
     return alpha_opt, width_opt, r_opt, details
+
+
+# Все экспериментальные скорости
+U1_ALL = [4.1667, 6.25, 8.3333, 10.4167, 12.5, 14.5833, 16.6667]
+
+
+def optimize_multi_speed(surrogates, geom, base_params, beta, L, eps,
+                         criterion="Re"):
+    """Оптимизация по углу для каждой скорости + средний r.
+
+    Возвращает dict с результатами по каждой скорости и средним.
+    """
+    surr3 = surrogates[3]
+    per_speed = []
+
+    for u1 in U1_ALL:
+        def objective(alpha, _u1=u1):
+            zeta, dc0 = predict_series3(alpha, surr3)
+            return _solve_r_for_params(zeta, dc0, _u1, geom, base_params,
+                                       beta, L, eps, criterion)
+
+        res = minimize_scalar(objective, bounds=(20.0, 65.0), method="bounded",
+                              options={"xatol": 0.01})
+        per_speed.append({
+            "u1": u1,
+            "alpha_opt": float(res.x),
+            "r_opt": float(res.fun),
+        })
+        logger.info("  u₁=%6.2f: α*=%.1f°, r*=%.4f", u1, res.x, res.fun)
+
+    # Оптимум по среднему r на всём диапазоне
+    def mean_r_objective(alpha):
+        total = 0.0
+        for u1 in U1_ALL:
+            zeta, dc0 = predict_series3(alpha, surr3)
+            total += _solve_r_for_params(zeta, dc0, u1, geom, base_params,
+                                         beta, L, eps, criterion)
+        return total / len(U1_ALL)
+
+    res_mean = minimize_scalar(mean_r_objective, bounds=(20.0, 65.0),
+                               method="bounded", options={"xatol": 0.01})
+    mean_result = {
+        "alpha_opt": float(res_mean.x),
+        "r_mean_opt": float(res_mean.fun),
+    }
+    logger.info("  Средний r: α*=%.1f°, r̄*=%.4f", res_mean.x, res_mean.fun)
+
+    return {"per_speed": per_speed, "mean": mean_result}
