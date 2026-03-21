@@ -53,3 +53,6 @@ BETA_RAD = np.radians(BETA_DEG)
 
 OUTPUT_STAGE3 = os.path.join(_OUTPUT_BASE, "stage3_physics")
 OUTPUT_STAGE3_PLOTS = os.path.join(OUTPUT_STAGE3, "plots")
+
+OUTPUT_STAGE4 = os.path.join(_OUTPUT_BASE, "stage4_plates")
+OUTPUT_STAGE4_PLOTS = os.path.join(OUTPUT_STAGE4, "plots")
