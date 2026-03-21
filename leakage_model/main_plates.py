@@ -1,6 +1,6 @@
 """Этап 4 — учёт направляющих пластин.
 
-Запуск: python -m leakage_model.main_plates [путь_к_xlsx]
+Запуск: python -m leakage_model.main_plates
 """
 
 import json
@@ -14,8 +14,9 @@ import pandas as pd
 from .config import GEOM_WATER, BETA_RAD, OUTPUT_STAGE4, OUTPUT_STAGE4_PLOTS
 from .idelchik import L_UPPER_DEFAULT, EPS_DEFAULT
 from .physics_model import solve_all
+from .plates_data import load_plates_with_geometry
 from .plates_model import predict_plates
-from .plates_calibration import calibrate_all, compute_aicc
+from .plates_calibration import calibrate_all
 from .plates_plots import (
     plot_rmse_comparison,
     plot_zeta_by_insert,
@@ -24,18 +25,12 @@ from .plates_plots import (
     plot_width_effect,
     plot_r_prediction_best,
 )
-from .validation import compute_metrics
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger(__name__)
-
-DEFAULT_XLSX = os.path.join(
-    os.path.dirname(__file__), "..",
-    "Расчет_параметров_модели_и_результаты_моделирования___ВОДА.xlsx",
-)
 
 CRITERION = "Re"
 L_UPPER = L_UPPER_DEFAULT
@@ -56,71 +51,30 @@ def _load_base_params():
     return a_xi, b_xi, c0
 
 
-def _diagnose_q25(plates_df, geom, base_params, beta):
-    """Диагностика точки Q=25 на вставке №1.
-
-    Сравнивает базовую модель с 8 и 7 точками.
-    Возвращает True, если Q=25 следует исключить.
-    """
+def _check_baseline(plates_df, geom, base_params, beta):
+    """Проверка базовой модели на вставке №1 (PUV=1, r_exp = r_baseline)."""
     a_xi, b_xi, c0 = base_params
     ins1 = plates_df[plates_df["insert_id"] == 1].sort_values("u1")
 
     if len(ins1) == 0:
         logger.warning("Вставка №1 не найдена в данных")
-        return False
+        return
 
     u1_all = ins1["u1"].values
     r_exp_all = ins1["r_exp"].values
 
-    # Базовая модель на всех 8 точках
-    result_8 = solve_all(u1_all, geom, a_xi, b_xi, c0, beta,
-                         L_UPPER, EPS, criterion=CRITERION)
-    err_8 = np.abs(result_8.r_pred - r_exp_all)
-    rmse_8 = np.sqrt(np.mean((result_8.r_pred - r_exp_all) ** 2))
+    result = solve_all(u1_all, geom, a_xi, b_xi, c0, beta,
+                       L_UPPER, EPS, criterion=CRITERION)
+    err = np.abs(result.r_pred - r_exp_all)
+    rmse = np.sqrt(np.mean((result.r_pred - r_exp_all) ** 2))
 
-    logger.info("Вставка №1 (8 точек): RMSE=%.4f", rmse_8)
+    logger.info("Вставка №1 (базовая, без пластин): RMSE=%.4f", rmse)
     for i in range(len(u1_all)):
-        logger.info("  u₁=%.2f: r_exp=%.4f, r_pred=%.4f, |err|=%.4f",
-                     u1_all[i], r_exp_all[i], result_8.r_pred[i], err_8[i])
-
-    # Найти Q=25 (минимальная скорость)
-    idx_q25 = np.argmin(u1_all)
-    err_q25 = err_8[idx_q25]
-    r_pred_q25 = result_8.r_pred[idx_q25]
-
-    # Без Q=25
-    mask_no_q25 = np.ones(len(u1_all), dtype=bool)
-    mask_no_q25[idx_q25] = False
-    u1_7 = u1_all[mask_no_q25]
-    r_exp_7 = r_exp_all[mask_no_q25]
-
-    result_7 = solve_all(u1_7, geom, a_xi, b_xi, c0, beta,
-                         L_UPPER, EPS, criterion=CRITERION)
-    rmse_7 = np.sqrt(np.mean((result_7.r_pred - r_exp_7) ** 2))
-
-    logger.info("Вставка №1 (7 точек, без Q=25): RMSE=%.4f", rmse_7)
-
-    # Критерий: Q=25 — выброс, если ошибка > 0.1 или r_pred ≈ 0.5
-    is_outlier = err_q25 > 0.1 or r_pred_q25 > 0.45
-    if is_outlier:
-        logger.info(
-            "РЕШЕНИЕ: Q=25 исключена глобально "
-            "(r_pred=%.4f, |err|=%.4f — систематический выброс)",
-            r_pred_q25, err_q25,
-        )
-    else:
-        logger.info(
-            "РЕШЕНИЕ: Q=25 оставлена (r_pred=%.4f, |err|=%.4f — в пределах нормы)",
-            r_pred_q25, err_q25,
-        )
-
-    return is_outlier
+        logger.info("  u₁=%6.2f: r_exp=%.4f, r_pred=%.4f, |err|=%.4f",
+                     u1_all[i], r_exp_all[i], result.r_pred[i], err[i])
 
 
-def main(xlsx_path=None):
-    if xlsx_path is None:
-        xlsx_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_XLSX
-
+def main():
     os.makedirs(OUTPUT_STAGE4, exist_ok=True)
     os.makedirs(OUTPUT_STAGE4_PLOTS, exist_ok=True)
 
@@ -129,12 +83,11 @@ def main(xlsx_path=None):
     logger.info("=" * 60)
 
     # --- Шаг 1: Загрузка данных ---
-    logger.info("=== Шаг 1: Загрузка данных из Excel ===")
-    from .plates_data import load_plates_with_geometry
-    plates_df = load_plates_with_geometry(xlsx_path)
+    logger.info("=== Шаг 1: Загрузка данных ===")
+    plates_df = load_plates_with_geometry()
     n_inserts = plates_df["insert_id"].nunique()
     n_points = len(plates_df)
-    logger.info("Загружено: %d вставок, %d точек", n_inserts, n_points)
+    logger.info("Загружено: %d вставок, %d точек (Q=25 уже исключена)", n_inserts, n_points)
 
     # Сохранить сырые данные
     plates_df.to_csv(os.path.join(OUTPUT_STAGE4, "plates_data.csv"), index=False)
@@ -144,17 +97,9 @@ def main(xlsx_path=None):
     base_params = (a_xi, b_xi, c0)
     geom = GEOM_WATER
 
-    # --- Шаг 2: Диагностика Q=25 на вставке №1 ---
+    # --- Шаг 2: Проверка базовой модели на вставке №1 ---
     logger.info("=== Шаг 2: Проверка базовой модели на вставке №1 ===")
-    exclude_q25 = _diagnose_q25(plates_df, geom, base_params, BETA_RAD)
-
-    if exclude_q25:
-        # Найти минимальный Q для каждой вставки и исключить
-        min_u1_per_insert = plates_df.groupby("insert_id")["u1"].transform("min")
-        n_before = len(plates_df)
-        plates_df = plates_df[plates_df["u1"] != min_u1_per_insert].copy()
-        n_after = len(plates_df)
-        logger.info("Исключено %d точек (Q=25) из всех вставок", n_before - n_after)
+    _check_baseline(plates_df, geom, base_params, BETA_RAD)
 
     # --- Шаг 3: Калибровка M1, M2, M3 ---
     logger.info("=== Шаг 3: Калибровка M1, M2, M3 для каждой вставки ===")
@@ -179,9 +124,10 @@ def main(xlsx_path=None):
         )
 
     # Лучшая модель по среднему RMSE
-    mean_rmse = {m: results_df[f"RMSE_{m}"].mean() for m in ["M1", "M2", "M3"]}
-    best_model = min(mean_rmse, key=mean_rmse.get)
-    logger.info("Лучшая модель по среднему RMSE: %s (%.4f)", best_model, mean_rmse[best_model])
+    mean_rmses = {m: results_df[f"RMSE_{m}"].mean() for m in ["M1", "M2", "M3"]}
+    best_model = min(mean_rmses, key=mean_rmses.get)
+    logger.info("Лучшая модель по среднему RMSE: %s (%.4f)",
+                best_model, mean_rmses[best_model])
 
     # Сводная таблица
     comparison_cols = ["insert_id", "insert_name",
@@ -192,10 +138,8 @@ def main(xlsx_path=None):
 
     # --- Шаг 5: Анализ параметров ---
     logger.info("=== Шаг 5: Анализ параметров ===")
-    params_cols = ["insert_id", "insert_name", "zeta_pl_M3", "delta_c0_M3", "RMSE_M3"]
-    params_df = results_df[params_cols].copy()
     logger.info("Параметры M3:")
-    for _, row in params_df.iterrows():
+    for _, row in results_df.iterrows():
         logger.info(
             "  Вставка %2d: ζ_пл=%.4f, Δc₀=%+.4f, RMSE=%.4f  %s",
             row["insert_id"], row["zeta_pl_M3"], row["delta_c0_M3"],
@@ -327,7 +271,6 @@ def main(xlsx_path=None):
                      row["zeta_pl_M3"], row["delta_c0_M3"])
 
     logger.info("Лучшая модель по среднему RMSE: %s", best_model)
-    logger.info("Q=25 исключена: %s", "Да" if exclude_q25 else "Нет")
     logger.info("=" * 60)
 
 
