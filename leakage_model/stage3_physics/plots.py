@@ -2,21 +2,16 @@
 
 import os
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
 from ..core.config import OUTPUT_STAGE3_PLOTS
+from ..core.plot_style import setup_matplotlib, apply_comma_ticks
 from .closures import calc_xi, calc_phi, calc_C_beta
 from .model import solve_all, residual_F
 from ..stage2_idelchik.coefficients import L_UPPER_DEFAULT, EPS_DEFAULT
 
-plt.rcParams.update({
-    "font.size": 12,
-    "axes.grid": True,
-    "grid.alpha": 0.3,
-})
+setup_matplotlib()
 
 OUTPUT_DIR = OUTPUT_STAGE3_PLOTS
 
@@ -24,6 +19,7 @@ OUTPUT_DIR = OUTPUT_STAGE3_PLOTS
 def _save(fig, name):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     path = os.path.join(OUTPUT_DIR, name)
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path

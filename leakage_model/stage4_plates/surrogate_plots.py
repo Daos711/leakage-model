@@ -2,23 +2,19 @@
 
 import os
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
 from .surrogates import predict_series3, predict_series4
+from ..core.plot_style import setup_matplotlib, apply_comma_ticks
 
-plt.rcParams.update({
-    "font.size": 12,
-    "axes.grid": True,
-    "grid.alpha": 0.3,
-})
+setup_matplotlib()
 
 
 def _save(fig, output_dir, name):
     os.makedirs(output_dir, exist_ok=True)
     path = os.path.join(output_dir, name)
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path

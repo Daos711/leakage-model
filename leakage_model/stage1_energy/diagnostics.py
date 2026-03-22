@@ -3,13 +3,14 @@
 import os
 import logging
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from .model import calc_delta_zeta, calc_Re
+from ..core.plot_style import setup_matplotlib, apply_comma_ticks
+
+setup_matplotlib()
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ def plot_dz_diagnostic(
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     path = os.path.join(OUTPUT_DIR, "06_dz_diagnostic.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path

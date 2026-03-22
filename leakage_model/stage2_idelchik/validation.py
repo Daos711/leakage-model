@@ -3,8 +3,6 @@
 import logging
 import os
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,6 +10,9 @@ import pandas as pd
 from .coefficients import VARIANTS, zeta_branch, zeta_straight, COS_ALPHA
 from .model import IdelchikResult
 from ..core.validation import Metrics, compute_metrics
+from ..core.plot_style import setup_matplotlib, apply_comma_ticks
+
+setup_matplotlib()
 
 logger = logging.getLogger(__name__)
 
@@ -20,16 +21,11 @@ from ..core.config import OUTPUT_STAGE2, OUTPUT_STAGE2_PLOTS
 OUTPUT_DIR = OUTPUT_STAGE2
 PLOTS_DIR = OUTPUT_STAGE2_PLOTS
 
-plt.rcParams.update({
-    "font.size": 12,
-    "axes.grid": True,
-    "grid.alpha": 0.3,
-})
-
 
 def _save(fig, name):
     os.makedirs(PLOTS_DIR, exist_ok=True)
     path = os.path.join(PLOTS_DIR, name)
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path

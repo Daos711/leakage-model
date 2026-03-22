@@ -3,11 +3,13 @@
 import logging
 import os
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+from ..core.plot_style import setup_matplotlib, apply_comma_ticks
+
+setup_matplotlib()
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,7 @@ def plot_rmse_comparison(results_df, output_dir):
     plt.tight_layout()
 
     path = os.path.join(output_dir, "30_plates_rmse_comparison.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
@@ -48,6 +51,7 @@ def plot_zeta_by_insert(results_df, output_dir):
     plt.tight_layout()
 
     path = os.path.join(output_dir, "31_plates_zeta_by_insert.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
@@ -67,6 +71,7 @@ def plot_dc0_by_insert(results_df, output_dir):
     plt.tight_layout()
 
     path = os.path.join(output_dir, "32_plates_dc0_by_insert.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
@@ -102,6 +107,7 @@ def plot_angle_effect(results_df, plates_df, output_dir):
     plt.tight_layout()
 
     path = os.path.join(output_dir, "33_plates_angle_effect.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
@@ -134,6 +140,7 @@ def plot_width_effect(results_df, plates_df, output_dir):
     plt.tight_layout()
 
     path = os.path.join(output_dir, "34_plates_width_effect.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
@@ -177,6 +184,7 @@ def plot_r_prediction_best(results_df, plates_df, geom, base_params, beta,
 
     plt.tight_layout()
     path = os.path.join(output_dir, "35_plates_r_prediction_best.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path

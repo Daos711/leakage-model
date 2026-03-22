@@ -2,21 +2,16 @@
 
 import os
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from ..core.config import RHO
+from ..core.plot_style import setup_matplotlib, apply_comma_ticks
 from ..stage1_energy.model import calc_k_ut, calc_Re
 from .solver import solve_r_brent
 
-plt.rcParams.update({
-    "font.size": 12,
-    "axes.grid": True,
-    "grid.alpha": 0.3,
-})
+setup_matplotlib()
 
 from ..core.config import OUTPUT_STAGE1_1_PLOTS
 OUTPUT_DIR = OUTPUT_STAGE1_1_PLOTS
@@ -25,6 +20,7 @@ OUTPUT_DIR = OUTPUT_STAGE1_1_PLOTS
 def _save(fig, name):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     path = os.path.join(OUTPUT_DIR, name)
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path
