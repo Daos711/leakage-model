@@ -176,7 +176,7 @@ def plot_r_prediction_best(results_df, plates_df, geom, base_params, beta,
 
         ax.plot(u1, r_exp, "ko", markersize=6, label="Эксперимент")
         ax.plot(u1_fine, r_pred_fine, "-", color="#4C72B0", linewidth=2,
-                label=f"M3 (RMSE={row['RMSE_M3']:.4f})")
+                label=f"M3 (RMSE={row['RMSE_M3']:.4f})".replace(".", ","))
         ax.set_xlabel("u₁, м/с")
         ax.set_ylabel("r")
         ax.legend(fontsize=8)

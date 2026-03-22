@@ -40,7 +40,7 @@ def plot_dc0_vs_angle(angles, delta_c0, surr3, output_dir):
         _, dc0_opt = predict_series3(alpha_opt, surr3)
         ax.axvline(alpha_opt, ls="--", color="blue", alpha=0.7)
         ax.plot(alpha_opt, dc0_opt, "b*", ms=15, zorder=6,
-                label=f"α* = {alpha_opt:.1f}°")
+                label=f"α* = {alpha_opt:.1f}°".replace(".", ","))
 
     ax.set_xlabel("Угол наклона α, °")
     ax.set_ylabel("Δc₀")
@@ -116,12 +116,12 @@ def plot_r_vs_angle(opt_details, alpha_opt, r_opt, output_dir):
     r_profile = np.array(opt_details["r_profile"])
     u1 = opt_details["u1"]
 
-    ax.plot(alphas, r_profile, "b-", lw=2, label=f"r(α), u₁={u1} м/с")
+    ax.plot(alphas, r_profile, "b-", lw=2, label=f"r(α), u₁={u1} м/с".replace(".", ","))
     ax.axvline(alpha_opt, ls="--", color="red", alpha=0.7)
     ax.plot(alpha_opt, r_opt, "r*", ms=15, zorder=5,
-            label=f"α* = {alpha_opt:.1f}°, r* = {r_opt:.4f}")
+            label=f"α* = {alpha_opt:.1f}°, r* = {r_opt:.4f}".replace(".", ","))
 
-    ax.axhline(0.138, ls=":", color="gray", lw=1.5, label="без пластин (r = 0.138)")
+    ax.axhline(0.138, ls=":", color="gray", lw=1.5, label="без пластин (r = 0,138)")
 
     ax.set_xlabel("Угол наклона α, °")
     ax.set_ylabel("Доля утечек r")
@@ -137,12 +137,12 @@ def plot_r_vs_width(opt_details, width_opt, r_opt, output_dir):
     r_profile = np.array(opt_details["r_profile"])
     u1 = opt_details["u1"]
 
-    ax.plot(widths, r_profile, "b-", lw=2, label=f"r(b), α=45°, u₁={u1} м/с")
+    ax.plot(widths, r_profile, "b-", lw=2, label=f"r(b), α=45°, u₁={u1} м/с".replace(".", ","))
     ax.axvline(width_opt, ls="--", color="red", alpha=0.7)
     ax.plot(width_opt, r_opt, "r*", ms=15, zorder=5,
-            label=f"b* = {width_opt:.0f} мм, r* = {r_opt:.4f}")
+            label=f"b* = {width_opt:.0f} мм, r* = {r_opt:.4f}".replace(".", ","))
 
-    ax.axhline(0.138, ls=":", color="gray", lw=1.5, label="без пластин (r = 0.138)")
+    ax.axhline(0.138, ls=":", color="gray", lw=1.5, label="без пластин (r = 0,138)")
 
     ax.set_xlabel("Ширина пластины b, мм")
     ax.set_ylabel("Доля утечек r")
