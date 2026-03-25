@@ -5,14 +5,14 @@ import os
 from dataclasses import dataclass, field
 from typing import Callable
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 
-from ..core import config as _cfg
 from .model import calc_Re
+from ..core.plot_style import setup_matplotlib, apply_comma_ticks
+
+setup_matplotlib()
 from ..core.validation import Metrics, compute_metrics
 
 logger = logging.getLogger(__name__)
@@ -263,13 +263,12 @@ def plot_all_models_calibration(
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    if not _cfg.NO_TITLES:
-        ax.set_title("Калибровка: все альтернативные модели r(u₁)")
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     path = os.path.join(OUTPUT_DIR, "07_all_models_calibration.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path
@@ -303,13 +302,12 @@ def plot_all_models_validation(
 
     ax.set_xlabel("Скорость u₁, м/с")
     ax.set_ylabel("Доля утечек r")
-    if not _cfg.NO_TITLES:
-        ax.set_title("Валидация: все альтернативные модели r(u₁)\n(воздушная модель, A_ок=20 м²)")
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     path = os.path.join(OUTPUT_DIR, "08_all_models_validation.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path
@@ -339,8 +337,6 @@ def plot_parity_best(
 
     ax.set_xlabel("r эксперимент")
     ax.set_ylabel("r расчёт")
-    if not _cfg.NO_TITLES:
-        ax.set_title(f"Parity plot: {best_fit.name}")
     ax.set_aspect("equal")
     ax.legend()
     ax.set_xlim(lims)
@@ -349,6 +345,7 @@ def plot_parity_best(
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     path = os.path.join(OUTPUT_DIR, "09_parity_best.png")
+    apply_comma_ticks(fig)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path
