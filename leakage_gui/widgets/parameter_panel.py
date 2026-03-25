@@ -65,7 +65,7 @@ class ParameterPanel(QWidget):
             if p.get("readonly"):
                 spin.setReadOnly(True)
                 spin.setButtonSymbols(QDoubleSpinBox.ButtonSymbols.NoButtons)
-                spin.setStyleSheet("background-color: #f0f0f0;")
+                spin.setProperty("readOnlyField", True)
 
             spin.valueChanged.connect(self.value_changed.emit)
             form.addRow(p["label"], spin)

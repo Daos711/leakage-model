@@ -50,6 +50,10 @@ class MainWindow(QMainWindow):
         self._build_menu()
         self._build_hotkeys()
 
+        # Применить тему при запуске
+        initial_theme = self.app_state.get("settings", {}).get("theme", "light")
+        self._set_theme(initial_theme)
+
         # Начальные графики
         self._update_current_tab()
 
@@ -321,13 +325,82 @@ class MainWindow(QMainWindow):
                 "QStatusBar { background-color: #323232; color: #e0e0e0; }"
                 "QSplitter::handle { background-color: #555; }"
                 "QTabWidget::pane { border: 1px solid #555; }"
+                "QTabBar::tab { background-color: #3c3c3c; color: #e0e0e0; "
+                "border: 1px solid #555; padding: 4px 10px; }"
+                "QTabBar::tab:selected { background-color: #505050; }"
                 "QHeaderView::section { background-color: #3c3c3c; "
                 "color: #e0e0e0; border: 1px solid #555; }"
                 "QTableWidget { background-color: #313131; color: #e0e0e0; "
                 "gridline-color: #555; }"
+                "QLabel { color: #e0e0e0; }"
+                "QCheckBox { color: #e0e0e0; }"
+                "QRadioButton { color: #e0e0e0; }"
+                "QSlider::groove:horizontal { background: #555; height: 6px; }"
+                "QSlider::handle:horizontal { background: #0d47a1; "
+                "width: 14px; margin: -4px 0; border-radius: 7px; }"
+                "QProgressBar { background-color: #3c3c3c; color: #e0e0e0; "
+                "border: 1px solid #555; }"
+                "QProgressBar::chunk { background-color: #0d47a1; }"
+                "QScrollBar:vertical { background: #2b2b2b; width: 12px; }"
+                "QScrollBar::handle:vertical { background: #555; "
+                "min-height: 20px; border-radius: 6px; }"
+                "QScrollBar:horizontal { background: #2b2b2b; height: 12px; }"
+                "QScrollBar::handle:horizontal { background: #555; "
+                "min-width: 20px; border-radius: 6px; }"
+                "QDoubleSpinBox[readOnlyField=\"true\"] "
+                "{ background-color: #3c3c3c; color: #aaaaaa; }"
             )
         else:
-            stylesheet = ""
+            stylesheet = (
+                "QWidget { background-color: #f5f5f5; color: #1a1a1a; }"
+                "QMenuBar { background-color: #e8e8e8; color: #1a1a1a; }"
+                "QMenuBar::item:selected { background-color: #d0d0d0; }"
+                "QMenu { background-color: #ffffff; color: #1a1a1a; }"
+                "QMenu::item:selected { background-color: #0d47a1; "
+                "color: #ffffff; }"
+                "QListWidget { background-color: #ffffff; color: #1a1a1a; "
+                "border: 1px solid #c0c0c0; }"
+                "QListWidget::item:selected { background-color: #0d47a1; "
+                "color: #ffffff; }"
+                "QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox, QTextEdit "
+                "{ background-color: #ffffff; color: #1a1a1a; "
+                "border: 1px solid #c0c0c0; }"
+                "QGroupBox { border: 1px solid #c0c0c0; margin-top: 6px; "
+                "color: #1a1a1a; }"
+                "QGroupBox::title { subcontrol-origin: margin; left: 10px; }"
+                "QPushButton { background-color: #e8e8e8; color: #1a1a1a; "
+                "border: 1px solid #c0c0c0; padding: 4px 12px; }"
+                "QPushButton:hover { background-color: #d0d0d0; }"
+                "QPushButton:pressed { background-color: #b8b8b8; }"
+                "QStatusBar { background-color: #e8e8e8; color: #1a1a1a; }"
+                "QSplitter::handle { background-color: #c0c0c0; }"
+                "QTabWidget::pane { border: 1px solid #c0c0c0; }"
+                "QTabBar::tab { background-color: #e8e8e8; color: #1a1a1a; "
+                "border: 1px solid #c0c0c0; padding: 4px 10px; }"
+                "QTabBar::tab:selected { background-color: #ffffff; }"
+                "QHeaderView::section { background-color: #e8e8e8; "
+                "color: #1a1a1a; border: 1px solid #c0c0c0; }"
+                "QTableWidget { background-color: #ffffff; color: #1a1a1a; "
+                "gridline-color: #d0d0d0; }"
+                "QLabel { color: #1a1a1a; }"
+                "QCheckBox { color: #1a1a1a; }"
+                "QRadioButton { color: #1a1a1a; }"
+                "QSlider::groove:horizontal { background: #c0c0c0; "
+                "height: 6px; }"
+                "QSlider::handle:horizontal { background: #0d47a1; "
+                "width: 14px; margin: -4px 0; border-radius: 7px; }"
+                "QProgressBar { background-color: #e8e8e8; color: #1a1a1a; "
+                "border: 1px solid #c0c0c0; }"
+                "QProgressBar::chunk { background-color: #0d47a1; }"
+                "QScrollBar:vertical { background: #f5f5f5; width: 12px; }"
+                "QScrollBar::handle:vertical { background: #c0c0c0; "
+                "min-height: 20px; border-radius: 6px; }"
+                "QScrollBar:horizontal { background: #f5f5f5; height: 12px; }"
+                "QScrollBar::handle:horizontal { background: #c0c0c0; "
+                "min-width: 20px; border-radius: 6px; }"
+                "QDoubleSpinBox[readOnlyField=\"true\"] "
+                "{ background-color: #e8e8e8; color: #555555; }"
+            )
 
         app = QApplication.instance()
         if app is not None:

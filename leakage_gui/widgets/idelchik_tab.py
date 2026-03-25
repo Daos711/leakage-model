@@ -58,7 +58,7 @@ class IdelchikTab(BaseTab):
 
         self.lbl_note = QLabel("")
         self.lbl_note.setWordWrap(True)
-        self.lbl_note.setStyleSheet("color: #666; font-style: italic;")
+        self.lbl_note.setStyleSheet("font-style: italic;")
         left.addWidget(self.lbl_note)
         left.addStretch()
 
