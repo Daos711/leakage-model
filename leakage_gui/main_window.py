@@ -140,6 +140,16 @@ class MainWindow(QMainWindow):
             lambda: self._set_calibration("joint"))
         settings_menu.addAction(act_joint)
 
+        settings_menu.addSeparator()
+
+        theme_menu = settings_menu.addMenu("Тема")
+        act_light = QAction("Светлая", self)
+        act_light.triggered.connect(lambda: self._set_theme("light"))
+        theme_menu.addAction(act_light)
+        act_dark = QAction("Тёмная", self)
+        act_dark.triggered.connect(lambda: self._set_theme("dark"))
+        theme_menu.addAction(act_dark)
+
         # Справка
         help_menu = menubar.addMenu("Справка")
         act_about = QAction("О программе", self)
@@ -284,6 +294,46 @@ class MainWindow(QMainWindow):
             "на основе полуэмпирической модели ξ(Re) + C_β\n"
             "с учётом направляющих пластин.\n\n"
             "Python + PyQt6 + matplotlib")
+
+    def _set_theme(self, theme: str) -> None:
+        """Переключение светлой/тёмной темы."""
+        from PyQt6.QtWidgets import QApplication
+
+        if theme == "dark":
+            stylesheet = (
+                "QWidget { background-color: #2b2b2b; color: #e0e0e0; }"
+                "QMenuBar { background-color: #323232; color: #e0e0e0; }"
+                "QMenuBar::item:selected { background-color: #505050; }"
+                "QMenu { background-color: #3c3c3c; color: #e0e0e0; }"
+                "QMenu::item:selected { background-color: #505050; }"
+                "QListWidget { background-color: #313131; color: #e0e0e0; "
+                "border: 1px solid #555; }"
+                "QListWidget::item:selected { background-color: #0d47a1; }"
+                "QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox, QTextEdit "
+                "{ background-color: #3c3c3c; color: #e0e0e0; "
+                "border: 1px solid #555; }"
+                "QGroupBox { border: 1px solid #555; margin-top: 6px; "
+                "color: #e0e0e0; }"
+                "QGroupBox::title { subcontrol-origin: margin; left: 10px; }"
+                "QPushButton { background-color: #3c3c3c; color: #e0e0e0; "
+                "border: 1px solid #555; padding: 4px 12px; }"
+                "QPushButton:hover { background-color: #505050; }"
+                "QStatusBar { background-color: #323232; color: #e0e0e0; }"
+                "QSplitter::handle { background-color: #555; }"
+                "QTabWidget::pane { border: 1px solid #555; }"
+                "QHeaderView::section { background-color: #3c3c3c; "
+                "color: #e0e0e0; border: 1px solid #555; }"
+                "QTableWidget { background-color: #313131; color: #e0e0e0; "
+                "gridline-color: #555; }"
+            )
+        else:
+            stylesheet = ""
+
+        app = QApplication.instance()
+        if app is not None:
+            app.setStyleSheet(stylesheet)
+        self.app_state.setdefault("settings", {})["theme"] = theme
+        self._update_status()
 
     def _toggle_fullscreen(self) -> None:
         if self.isFullScreen():
